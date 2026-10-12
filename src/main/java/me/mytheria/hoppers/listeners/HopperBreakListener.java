@@ -20,7 +20,7 @@ public class HopperBreakListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreak(BlockBreakEvent event) {
 
         Block block = event.getBlock();
@@ -29,9 +29,7 @@ public class HopperBreakListener implements Listener {
             return;
         }
 
-        HopperData data =
-                plugin.getHopperManager()
-                        .getData(block.getLocation());
+        HopperData data = plugin.getHopperManager().getHoppers().get(block.getLocation());
 
         if (data == null) {
             return;

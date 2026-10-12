@@ -18,7 +18,7 @@ public class HopperPlaceListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
 
         if (event.getBlock().getType() != Material.HOPPER) {
@@ -80,6 +80,6 @@ public class HopperPlaceListener implements Listener {
                         data
                 );
 
-        plugin.getDataManager().save();
+        plugin.getHopperManager().saveData();
     }
 }

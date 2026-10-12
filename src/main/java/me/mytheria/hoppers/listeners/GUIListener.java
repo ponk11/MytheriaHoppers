@@ -30,7 +30,8 @@ public class GUIListener implements Listener {
         // Check if it's one of our custom GUIs (not a normal hopper inventory)
         if (title != null && (title.contains("Hopper Upgrades") || title.contains("Item Filter Selection"))) {
             
-            if (event.getWhoClicked() instanceof Player player) {
+            if (event.getWhoClicked() instanceof Player) {
+                Player player = (Player) event.getWhoClicked();
                 // For Hopper Upgrades GUI - handle upgrade buttons
                 if (title.contains("Hopper Upgrades") && event.getClickedInventory().equals(event.getInventory())) {
                     event.setCancelled(true);
@@ -101,8 +102,8 @@ public class GUIListener implements Listener {
         }
         // Handle Filter Selection GUI
         else if (title.contains("Item Filter Selection")) {
-            // Slot 13 is the center display slot (unlock or deselect)
-            if (slot == 13) {
+            // Slot 13 is the unlock button while locked; slot 26 clears a filter.
+            if (slot == 13 && !data.isFilterUnlocked()) {
                 if (!data.isFilterUnlocked()) {
                     // Unlock filter
                     if (plugin.getUpgradeManager().unlockFilter(player, data)) {
@@ -111,27 +112,38 @@ public class GUIListener implements Listener {
                     } else {
                         player.sendMessage("§cFailed to unlock filter. You need $5,000,000.");
                     }
-                } else if (data.getSelectedFilterItem() != null) {
-                    // Deselect item
-                    data.setSelectedFilterItem(null);
-                    player.sendMessage("§aItem deselected!");
-                    plugin.getHopperManager().saveData();
                 }
                 plugin.getHopperGUI().openFilterGUI(player, hopperLocation);
+            } else if (slot == 26 && data.isFilterUnlocked()) {
+                data.getFilteredMaterials().clear();
+                data.setFilterEnabled(false);
+                data.setSelectedFilterItem(null);
+                plugin.getHopperManager().saveData();
+                plugin.getHopperGUI().openFilterGUI(player, hopperLocation);
             }
-            // Slots 0-17 are for selecting items (if filter is unlocked)
-            else if (data.isFilterUnlocked() && slot >= 0 && slot < 18 && slot != 13) {
+            // Slots 0-17 hold allowed item types.
+            else if (data.isFilterUnlocked() && slot >= 0 && slot < Math.min(18, data.getUnlockedFilterSlots())) {
                 ItemStack cursor = event.getCursor();
                 if (cursor != null && cursor.getType() != Material.AIR) {
-                    // Player is placing an item
-                    data.setSelectedFilterItem(cursor.getType());
-                    player.sendMessage("§aSelected item: " + cursor.getType().name());
+                    if (!data.getFilteredMaterials().contains(cursor.getType()) &&
+                            data.getFilteredMaterials().size() >= data.getUnlockedFilterSlots()) {
+                        player.sendMessage("§cUnlock another filter slot before adding more items.");
+                        return;
+                    }
+                    data.addFilterMaterial(cursor.getType());
+                    data.setFilterEnabled(true);
+                    player.sendMessage("§aAdded " + cursor.getType().name() + " to the hopper filter.");
+                    plugin.getHopperManager().saveData();
+                    plugin.getHopperGUI().openFilterGUI(player, hopperLocation);
+                } else if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.LIGHT_GRAY_STAINED_GLASS_PANE) {
+                    data.removeFilterMaterial(event.getCurrentItem().getType());
+                    data.setFilterEnabled(!data.getFilteredMaterials().isEmpty());
                     plugin.getHopperManager().saveData();
                     plugin.getHopperGUI().openFilterGUI(player, hopperLocation);
                 }
             }
             // Slots 18-25 are for unlocking additional slots
-            else if (data.isFilterUnlocked() && slot >= 18 && slot <= 25 && data.getUnlockedFilterSlots() < 27) {
+            else if (data.isFilterUnlocked() && slot >= 18 && slot <= 25 && data.getUnlockedFilterSlots() < 18) {
                 if (plugin.getUpgradeManager().unlockFilterSlot(player, data)) {
                     player.sendMessage("§aFilter slot unlocked! You now have " + data.getUnlockedFilterSlots() + " slots.");
                     plugin.getHopperManager().saveData();
@@ -147,30 +159,9 @@ public class GUIListener implements Listener {
     public void onInventoryDrag(InventoryDragEvent event) {
         String title = event.getView().getTitle();
         
-        if (title != null && title.contains("Item Filter Selection")) {
-            if (event.getWhoClicked() instanceof Player player) {
-                Location hopperLocation = HopperGUI.openHopperLocations.get(player.getUniqueId());
-                if (hopperLocation != null) {
-                    HopperData data = plugin.getHopperManager().getData(hopperLocation);
-                    if (data != null && data.isFilterUnlocked()) {
-                        // Check if any of the drag slots are in the filter GUI (0-17)
-                        for (int slot : event.getRawSlots()) {
-                            if (slot >= 0 && slot < 18 && slot != 13) {
-                                // Dragging to a filter slot
-                                event.setCancelled(true);
-                                ItemStack cursor = event.getCursor();
-                                if (cursor != null && cursor.getType() != Material.AIR) {
-                                    data.setSelectedFilterItem(cursor.getType());
-                                    player.sendMessage("§aSelected item: " + cursor.getType().name());
-                                    plugin.getHopperManager().saveData();
-                                    plugin.getHopperGUI().openFilterGUI(player, hopperLocation);
-                                }
-                                return;
-                            }
-                        }
-                    }
-                }
-            }
+        if (title != null && title.contains("Item Filter Selection") &&
+                event.getRawSlots().stream().anyMatch(slot -> slot < event.getView().getTopInventory().getSize())) {
+            event.setCancelled(true);
         }
     }
 }

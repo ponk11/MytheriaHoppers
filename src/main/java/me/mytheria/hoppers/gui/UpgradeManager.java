@@ -45,9 +45,7 @@ public class UpgradeManager {
                         path + ".cost"
                 );
 
-        EconomyProvider economy =
-                plugin.getEconomyManager()
-                        .getProvider();
+        EconomyProvider economy = plugin.getEconomyManager() == null ? null : plugin.getEconomyManager().getProvider();
 
         if (economy == null) {
             return false;
@@ -97,9 +95,7 @@ public class UpgradeManager {
                         path + ".cost"
                 );
 
-        EconomyProvider economy =
-                plugin.getEconomyManager()
-                        .getProvider();
+        EconomyProvider economy = plugin.getEconomyManager() == null ? null : plugin.getEconomyManager().getProvider();
 
         if (economy == null) {
             return false;
@@ -123,8 +119,8 @@ public class UpgradeManager {
             return false;
         }
 
-        double cost = plugin.getConfig().getDouble("filter-unlock-cost", 5000000.0);
-        EconomyProvider economy = plugin.getEconomyManager().getProvider();
+        double cost = plugin.getConfig().getDouble("filter.unlock-cost", plugin.getConfig().getDouble("filter-unlock-cost", 5000000.0));
+        EconomyProvider economy = plugin.getEconomyManager() == null ? null : plugin.getEconomyManager().getProvider();
 
         if (economy == null) {
             return false;
@@ -148,12 +144,13 @@ public class UpgradeManager {
             return false;
         }
 
-        if (data.getUnlockedFilterSlots() >= 27) {
+        int maxSlots = Math.max(1, Math.min(18, plugin.getConfig().getInt("filter.max-slots", 18)));
+        if (data.getUnlockedFilterSlots() >= maxSlots) {
             return false;
         }
 
-        double cost = plugin.getConfig().getDouble("filter-slot-unlock-cost", 250000.0);
-        EconomyProvider economy = plugin.getEconomyManager().getProvider();
+        double cost = plugin.getConfig().getDouble("filter.slot-cost", plugin.getConfig().getDouble("filter-slot-unlock-cost", 250000.0));
+        EconomyProvider economy = plugin.getEconomyManager() == null ? null : plugin.getEconomyManager().getProvider();
 
         if (economy == null) {
             return false;

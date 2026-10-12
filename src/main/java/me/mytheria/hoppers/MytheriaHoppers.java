@@ -14,7 +14,7 @@ import me.mytheria.hoppers.listeners.HopperBreakListener;
 import me.mytheria.hoppers.listeners.HopperInteractListener;
 import me.mytheria.hoppers.listeners.HopperPlaceListener;
 import me.mytheria.hoppers.managers.HopperManager;
-import me.mytheria.hoppers.storage.DataManager;
+import me.mytheria.hoppers.commands.HopperCommand;
 import net.milkbowl.vault.economy.Economy;
 
 public class MytheriaHoppers extends JavaPlugin {
@@ -23,7 +23,6 @@ public class MytheriaHoppers extends JavaPlugin {
     private Economy economy;
     private EconomyManager economyManager;
     private HopperManager hopperManager;
-    private DataManager dataManager;
     private UpgradeManager upgradeManager;
     private HopperGUI hopperGUI;
 
@@ -37,7 +36,6 @@ public class MytheriaHoppers extends JavaPlugin {
         }
 
         this.hopperManager = new HopperManager(this);
-        this.dataManager = new DataManager(this);
         this.upgradeManager = new UpgradeManager(this);
         this.hopperGUI = new HopperGUI(this);
 
@@ -46,6 +44,10 @@ public class MytheriaHoppers extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new HopperBlockListener(this), this);
         getServer().getPluginManager().registerEvents(new HopperBreakListener(this), this);
         getServer().getPluginManager().registerEvents(new HopperPlaceListener(this), this);
+
+        if (getCommand("mytheriahoppers") != null) {
+            getCommand("mytheriahoppers").setExecutor(new HopperCommand(this));
+        }
 
         // Schedule the hopper task to run every tick
         new HopperTask(this).runTaskTimer(this, 0L, 1L);
@@ -90,10 +92,6 @@ public class MytheriaHoppers extends JavaPlugin {
 
     public HopperManager getHopperManager() {
         return hopperManager;
-    }
-
-    public DataManager getDataManager() {
-        return dataManager;
     }
 
     public UpgradeManager getUpgradeManager() {

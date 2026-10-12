@@ -1,6 +1,8 @@
 settings:
   max-speed-level: 4
   max-range-level: 4
+  default-transfer-ticks: 8
+  default-transfer-amount: 1
 
 gui:
   title: "&d✦ Mytheria Hoppers ✦"
@@ -12,18 +14,22 @@ speed-upgrades:
 
   1:
     transfer-ticks: 8
+    transfer-amount: 1
     cost: 50000
 
   2:
     transfer-ticks: 6
+    transfer-amount: 1
     cost: 250000
 
   3:
     transfer-ticks: 4
+    transfer-amount: 1
     cost: 1250000
 
   4:
     transfer-ticks: 2
+    transfer-amount: 1
     cost: 6250000
 
 range-upgrades:
@@ -43,6 +49,11 @@ range-upgrades:
   4:
     range: 8
     cost: 6250000
+
+filter:
+  unlock-cost: 5000000
+  slot-cost: 250000
+  max-slots: 18
 
 messages:
 

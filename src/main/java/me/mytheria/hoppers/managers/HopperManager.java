@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -47,9 +48,11 @@ public class HopperManager {
     }
 
     public void saveData() {
-        if (dataConfig == null) {
-            dataConfig = new YamlConfiguration();
+        if (!plugin.getDataFolder().exists() && !plugin.getDataFolder().mkdirs()) {
+            plugin.getLogger().severe("Could not create the plugin data folder.");
+            return;
         }
+        dataConfig = new YamlConfiguration();
 
         for (Map.Entry<Location, HopperData> entry : hopperDataMap.entrySet()) {
             Location loc = entry.getKey();
@@ -64,6 +67,7 @@ public class HopperManager {
             if (data.getSelectedFilterItem() != null) {
                 dataConfig.set(path + ".selectedFilterItem", data.getSelectedFilterItem().toString());
             }
+            dataConfig.set(path + ".filteredMaterials", data.getFilteredMaterials().stream().map(Enum::name).collect(Collectors.toList()));
         }
 
         try {
@@ -87,9 +91,17 @@ public class HopperManager {
             if (parts.length != 4) continue;
 
             String worldName = parts[0];
-            int x = Integer.parseInt(parts[1]);
-            int y = Integer.parseInt(parts[2]);
-            int z = Integer.parseInt(parts[3]);
+            int x;
+            int y;
+            int z;
+            try {
+                x = Integer.parseInt(parts[1]);
+                y = Integer.parseInt(parts[2]);
+                z = Integer.parseInt(parts[3]);
+            } catch (NumberFormatException ignored) {
+                plugin.getLogger().warning("Skipping invalid saved hopper location: " + key);
+                continue;
+            }
 
             if (Bukkit.getWorld(worldName) == null) continue;
 
@@ -102,14 +114,20 @@ public class HopperManager {
             data.setUnlockedFilterSlots(dataConfig.getInt("hoppers." + key + ".unlockedFilterSlots", 0));
             
             String selectedItem = dataConfig.getString("hoppers." + key + ".selectedFilterItem");
+            java.util.Set<org.bukkit.Material> materials = new java.util.HashSet<>();
+            for (String name : dataConfig.getStringList("hoppers." + key + ".filteredMaterials")) {
+                try { materials.add(org.bukkit.Material.valueOf(name)); } catch (IllegalArgumentException ignored) { }
+            }
             if (selectedItem != null && !selectedItem.isEmpty()) {
                 try {
-                    org.bukkit.Material material = org.bukkit.Material.valueOf(selectedItem);
-                    data.setSelectedFilterItem(material);
+                    materials.add(org.bukkit.Material.valueOf(selectedItem));
                 } catch (IllegalArgumentException e) {
                     // Invalid material, skip
                 }
             }
+            data.setFilteredMaterials(materials);
+            data.setFilterUnlocked(dataConfig.getBoolean("hoppers." + key + ".filterUnlocked", false));
+            data.setUnlockedFilterSlots(Math.max(data.getUnlockedFilterSlots(), dataConfig.getInt("hoppers." + key + ".unlockedFilterSlots", materials.size())));
 
             hopperDataMap.put(loc, data);
         }

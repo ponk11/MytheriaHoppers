@@ -61,10 +61,12 @@ public class HopperData {
 
     public void addFilterMaterial(Material material) {
         filteredMaterials.add(material);
+        selectedFilterItem = filteredMaterials.size() == 1 ? material : null;
     }
 
     public void removeFilterMaterial(Material material) {
         filteredMaterials.remove(material);
+        selectedFilterItem = filteredMaterials.size() == 1 ? filteredMaterials.iterator().next() : null;
     }
 
     public boolean isFilterUnlocked() {
@@ -99,5 +101,12 @@ public class HopperData {
             filteredMaterials.clear();
             this.filterEnabled = false;
         }
+    }
+
+    public void setFilteredMaterials(Set<Material> materials) {
+        filteredMaterials.clear();
+        if (materials != null) filteredMaterials.addAll(materials);
+        selectedFilterItem = filteredMaterials.size() == 1 ? filteredMaterials.iterator().next() : null;
+        filterEnabled = !filteredMaterials.isEmpty();
     }
 }

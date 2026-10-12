@@ -5,6 +5,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class ItemBuilder {
 
@@ -44,7 +45,7 @@ public class ItemBuilder {
         meta.setLore(
                 Arrays.stream(lore)
                         .map(ColorUtil::color)
-                        .toList()
+                        .collect(Collectors.toList())
         );
 
         item.setItemMeta(meta);
