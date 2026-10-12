@@ -66,7 +66,7 @@
     "Spigot": "PASS"
   },
   "1.18": {
-    "Paper": "PASS",
+    "Paper": "PASS (alpha build)",
     "Purpur": "PASS",
     "CraftBukkit": "PASS",
     "Spigot": "PASS"
@@ -138,7 +138,7 @@
     "Spigot": "PASS"
   },
   "1.20.5": {
-    "Paper": "PASS",
+    "Paper": "PASS (alpha build)",
     "Purpur": "NOT PUBLISHED",
     "CraftBukkit": "PASS",
     "Spigot": "PASS"
@@ -174,7 +174,7 @@
     "Spigot": "PASS"
   },
   "1.21.5": {
-    "Paper": "PASS",
+    "Paper": "PASS (alpha build)",
     "Purpur": "PASS",
     "CraftBukkit": "PASS",
     "Spigot": "PASS"
@@ -198,7 +198,7 @@
     "Spigot": "PASS"
   },
   "1.21.9": {
-    "Paper": "PASS",
+    "Paper": "PASS (alpha build)",
     "Purpur": "PASS",
     "CraftBukkit": "PASS",
     "Spigot": "PASS"
@@ -216,7 +216,7 @@
     "Spigot": "PASS"
   },
   "26.1.1": {
-    "Paper": "PASS",
+    "Paper": "PASS (alpha build)",
     "Purpur": "NOT PUBLISHED",
     "CraftBukkit": "PASS",
     "Spigot": "PASS"
