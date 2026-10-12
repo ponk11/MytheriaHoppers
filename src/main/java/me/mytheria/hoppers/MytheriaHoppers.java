@@ -13,6 +13,8 @@ import me.mytheria.hoppers.listeners.HopperBlockListener;
 import me.mytheria.hoppers.listeners.HopperBreakListener;
 import me.mytheria.hoppers.listeners.HopperInteractListener;
 import me.mytheria.hoppers.listeners.HopperPlaceListener;
+import me.mytheria.hoppers.listeners.HopperFilterListener;
+import me.mytheria.hoppers.listeners.HopperConversionListener;
 import me.mytheria.hoppers.managers.HopperManager;
 import me.mytheria.hoppers.commands.HopperCommand;
 import net.milkbowl.vault.economy.Economy;
@@ -44,6 +46,10 @@ public class MytheriaHoppers extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new HopperBlockListener(this), this);
         getServer().getPluginManager().registerEvents(new HopperBreakListener(this), this);
         getServer().getPluginManager().registerEvents(new HopperPlaceListener(this), this);
+        getServer().getPluginManager().registerEvents(new HopperFilterListener(this), this);
+        HopperConversionListener conversionListener = new HopperConversionListener(this);
+        getServer().getPluginManager().registerEvents(conversionListener, this);
+        conversionListener.start();
 
         if (getCommand("mytheriahoppers") != null) {
             getCommand("mytheriahoppers").setExecutor(new HopperCommand(this));

@@ -16,6 +16,8 @@
 /workspaces/mytheria-hopper-upgrade/src/main/java/me/mytheria/hoppers/listeners/GUIListener.java
 /workspaces/mytheria-hopper-upgrade/src/main/java/me/mytheria/hoppers/listeners/HopperBlockListener.java
 /workspaces/mytheria-hopper-upgrade/src/main/java/me/mytheria/hoppers/listeners/HopperBreakListener.java
+/workspaces/mytheria-hopper-upgrade/src/main/java/me/mytheria/hoppers/listeners/HopperConversionListener.java
+/workspaces/mytheria-hopper-upgrade/src/main/java/me/mytheria/hoppers/listeners/HopperFilterListener.java
 /workspaces/mytheria-hopper-upgrade/src/main/java/me/mytheria/hoppers/listeners/HopperInteractListener.java
 /workspaces/mytheria-hopper-upgrade/src/main/java/me/mytheria/hoppers/listeners/HopperPlaceListener.java
 /workspaces/mytheria-hopper-upgrade/src/main/java/me/mytheria/hoppers/managers/HopperManager.java

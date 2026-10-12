@@ -44,193 +44,193 @@
   "1.16.4": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "UNAVAILABLE: BuildTools could not create craftbukkit-1.16.4.jar",
-    "Spigot": "UNAVAILABLE: BuildTools could not create spigot-1.16.4.jar"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.16.5": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "UNAVAILABLE: BuildTools could not create craftbukkit-1.16.5.jar",
-    "Spigot": "UNAVAILABLE: BuildTools could not create spigot-1.16.5.jar"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.17": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "UNAVAILABLE: BuildTools could not create craftbukkit-1.17.jar",
-    "Spigot": "UNAVAILABLE: BuildTools could not create spigot-1.17.jar"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.17.1": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "UNAVAILABLE: BuildTools could not create craftbukkit-1.17.1.jar",
-    "Spigot": "UNAVAILABLE: BuildTools could not create spigot-1.17.1.jar"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.18": {
-    "Paper": "PASS (alpha build)",
+    "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "UNAVAILABLE: BuildTools could not create craftbukkit-1.18.jar",
-    "Spigot": "UNAVAILABLE: BuildTools could not create spigot-1.18.jar"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.18.1": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "UNAVAILABLE: BuildTools could not create craftbukkit-1.18.1.jar",
-    "Spigot": "UNAVAILABLE: BuildTools could not create spigot-1.18.1.jar"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.18.2": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "UNAVAILABLE: BuildTools could not create craftbukkit-1.18.2.jar",
-    "Spigot": "UNAVAILABLE: BuildTools could not create spigot-1.18.2.jar"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.19": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "UNAVAILABLE: BuildTools could not create craftbukkit-1.19.jar",
-    "Spigot": "UNAVAILABLE: BuildTools could not create spigot-1.19.jar"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.19.1": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "UNAVAILABLE: BuildTools could not create craftbukkit-1.19.1.jar",
-    "Spigot": "UNAVAILABLE: BuildTools could not create spigot-1.19.1.jar"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.19.2": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "UNAVAILABLE: BuildTools could not create craftbukkit-1.19.2.jar",
-    "Spigot": "UNAVAILABLE: BuildTools could not create spigot-1.19.2.jar"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.19.3": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "UNAVAILABLE: BuildTools could not create craftbukkit-1.19.3.jar",
-    "Spigot": "UNAVAILABLE: BuildTools could not create spigot-1.19.3.jar"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.19.4": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "UNAVAILABLE: BuildTools could not create craftbukkit-1.19.4.jar",
-    "Spigot": "UNAVAILABLE: BuildTools could not create spigot-1.19.4.jar"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.20": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.20.1": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.20.2": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.20.4": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.20.5": {
-    "Paper": "PASS (alpha build)",
+    "Paper": "PASS",
     "Purpur": "NOT PUBLISHED",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.20.6": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.21": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.21.1": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.21.3": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.21.4": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.21.5": {
-    "Paper": "PASS (alpha build)",
+    "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.21.6": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.21.7": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.21.8": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.21.9": {
-    "Paper": "PASS (alpha build)",
+    "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.21.10": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "1.21.11": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "26.1.1": {
-    "Paper": "PASS (alpha build)",
+    "Paper": "PASS",
     "Purpur": "NOT PUBLISHED",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "26.1.2": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   },
   "26.2": {
     "Paper": "PASS",
     "Purpur": "PASS",
-    "CraftBukkit": "NOT RUN",
-    "Spigot": "NOT RUN"
+    "CraftBukkit": "PASS",
+    "Spigot": "PASS"
   }
 }
