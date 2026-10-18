@@ -27,6 +27,7 @@ public class MytheriaHoppers extends JavaPlugin {
     private HopperManager hopperManager;
     private UpgradeManager upgradeManager;
     private HopperGUI hopperGUI;
+    private HopperTask hopperTask;
 
     @Override
     public void onEnable() {
@@ -55,8 +56,9 @@ public class MytheriaHoppers extends JavaPlugin {
             getCommand("mytheriahoppers").setExecutor(new HopperCommand(this));
         }
 
-        // Schedule the hopper task to run every tick
-        new HopperTask(this).runTaskTimer(this, 0L, 1L);
+        hopperTask = new HopperTask(this);
+        getServer().getPluginManager().registerEvents(hopperTask, this);
+        hopperTask.runTaskTimer(this, 0L, 2L);
 
         getLogger().info("MytheriaHoppers enabled successfully!");
     }
@@ -106,5 +108,13 @@ public class MytheriaHoppers extends JavaPlugin {
 
     public HopperGUI getHopperGUI() {
         return hopperGUI;
+    }
+
+    public void refreshHopperTaskConfiguration() {
+        if (hopperTask != null) hopperTask.refreshConfiguration();
+    }
+
+    public HopperTask getHopperTask() {
+        return hopperTask;
     }
 }

@@ -72,13 +72,8 @@ public class HopperPlaceListener implements Listener {
         data.setSpeedLevel(speedLevel);
         data.setRangeLevel(rangeLevel);
 
-        plugin.getHopperManager()
-                .getHoppers()
-                .put(
-                        event.getBlock()
-                                .getLocation(),
-                        data
-                );
+        plugin.getHopperManager().getHoppers().put(event.getBlock().getLocation(), data);
+        plugin.getHopperTask().indexHopper(event.getBlock().getLocation());
 
         plugin.getHopperManager().saveData();
     }

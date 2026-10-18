@@ -1,6 +1,10 @@
 package me.mytheria.hoppers.hopper;
 
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -12,83 +16,138 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
 
 import me.mytheria.hoppers.MytheriaHoppers;
 
-public class HopperTask extends BukkitRunnable {
+public class HopperTask extends BukkitRunnable implements Listener {
 
     private final MytheriaHoppers plugin;
     private int currentTick;
+    private final int[] transferTicks = new int[5];
+    private final int[] transferAmounts = new int[5];
+    private final int[] ranges = new int[5];
+    private Method setTransferCooldown;
+    private Class<?> cooldownClass;
+    private int tickStep = 2;
+    private final Map<String, Set<Location>> hoppersByChunk = new HashMap<>();
+    private final Set<String> loadedChunks = new HashSet<>();
 
     public HopperTask(MytheriaHoppers plugin) {
         this.plugin = plugin;
+        refreshConfiguration();
+        for (Location location : plugin.getHopperManager().getHoppers().keySet()) {
+            indexHopper(location);
+        }
+    }
+
+    public void refreshConfiguration() {
+        int defaultTicks = Math.max(1, plugin.getConfig().getInt("settings.default-transfer-ticks", 8));
+        int defaultAmount = Math.max(1, plugin.getConfig().getInt("settings.default-transfer-amount", 1));
+        for (int level = 0; level < transferTicks.length; level++) {
+            transferTicks[level] = Math.max(1, plugin.getConfig().getInt("speed-upgrades." + level + ".transfer-ticks", defaultTicks));
+            transferAmounts[level] = Math.max(1, plugin.getConfig().getInt("speed-upgrades." + level + ".transfer-amount", defaultAmount));
+            ranges[level] = Math.max(1, plugin.getConfig().getInt("range-upgrades." + level + ".range", 1));
+        }
+        tickStep = 2;
     }
 
     @Override
     public void run() {
-        currentTick++;
+        currentTick += tickStep;
 
-        for (Map.Entry<Location, HopperData> entry : plugin.getHopperManager().getHoppers().entrySet()) {
-            Location location = entry.getKey();
-            HopperData data = entry.getValue();
+        for (String chunkKey : loadedChunks) {
+            Set<Location> locations = hoppersByChunk.get(chunkKey);
+            if (locations == null) continue;
+            for (Location location : locations) {
+                HopperData data = plugin.getHopperManager().getHoppers().get(location);
+                if (data == null) continue;
 
-            if (!location.getChunk().isLoaded()) {
-                continue;
-            }
+                Block block = location.getBlock();
+                if (block.getType() != Material.HOPPER) {
+                    continue;
+                }
 
-            Block block = location.getBlock();
-            if (block.getType() != Material.HOPPER) {
-                continue;
-            }
+                if (block.isBlockPowered() || block.isBlockIndirectlyPowered()) {
+                    continue;
+                }
 
-            if (block.isBlockPowered() || block.isBlockIndirectlyPowered()) {
-                continue;
-            }
+                int speedLevel = clampLevel(data.getSpeedLevel());
+                int configuredTransferTicks = transferTicks[speedLevel];
 
-            int speedLevel = data.getSpeedLevel();
-            int transferTicks = plugin.getConfig().getInt(
-                    "speed-upgrades." + speedLevel + ".transfer-ticks",
-                    plugin.getConfig().getInt("settings.default-transfer-ticks", 8)
-            );
+                if (currentTick - data.getLastTransferTick() < configuredTransferTicks) {
+                    continue;
+                }
 
-            if (currentTick - data.getLastTransferTick() < transferTicks) {
-                continue;
-            }
+                data.setLastTransferTick(currentTick);
 
-            data.setLastTransferTick(currentTick);
+                int range = ranges[clampLevel(data.getRangeLevel())];
+                int amountToTransfer = transferAmounts[speedLevel];
 
-            int rangeLevel = data.getRangeLevel();
-            int range = 1;
-            if (rangeLevel > 0) {
-                range = plugin.getConfig().getInt(
-                        "range-upgrades." + rangeLevel + ".range",
-                        1
-                );
-            }
+                org.bukkit.block.Hopper hopper = (org.bukkit.block.Hopper) block.getState();
+                if (cooldownClass != hopper.getClass()) {
+                    cooldownClass = hopper.getClass();
+                    try {
+                        setTransferCooldown = cooldownClass.getMethod("setTransferCooldown", int.class);
+                    } catch (ReflectiveOperationException ignored) {
+                        setTransferCooldown = null;
+                    }
+                }
+                boolean customCooldown = setTransferCooldown != null;
+                if (customCooldown) {
+                    try {
+                        setTransferCooldown.invoke(hopper, configuredTransferTicks);
+                    } catch (ReflectiveOperationException ignored) {
+                        customCooldown = false;
+                    }
+                }
+                hopper.update(true, false);
 
-            int amountToTransfer = plugin.getConfig().getInt(
-                    "speed-upgrades." + speedLevel + ".transfer-amount",
-                    plugin.getConfig().getInt("settings.default-transfer-amount", 1)
-            );
-
-            org.bukkit.block.Hopper hopper = (org.bukkit.block.Hopper) block.getState();
-            // Paper exposes this on newer API versions; reflection keeps the plugin
-            // loadable on older Bukkit/Paper servers where the method is absent.
-            boolean customCooldown = false;
-            try {
-                hopper.getClass().getMethod("setTransferCooldown", int.class)
-                        .invoke(hopper, Math.max(1, transferTicks));
-                customCooldown = true;
-            } catch (ReflectiveOperationException ignored) {
-                // Older APIs need the compatibility transfer below.
-            }
-            hopper.update(true, false);
-
-            collectItems(location, data, range, amountToTransfer);
-            if (!customCooldown) {
-                transferOut(block, Math.max(1, amountToTransfer));
+                collectItems(location, data, hopper.getInventory(), range, amountToTransfer);
+                if (!customCooldown) {
+                    transferOut(block, Math.max(1, amountToTransfer));
+                }
             }
         }
+    }
+
+    public void indexHopper(Location location) {
+        if (location == null || location.getWorld() == null) return;
+        String key = chunkKey(location);
+        hoppersByChunk.computeIfAbsent(key, ignored -> new HashSet<>()).add(location);
+        if (location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) loadedChunks.add(key);
+    }
+
+    public void unindexHopper(Location location) {
+        if (location == null || location.getWorld() == null) return;
+        Set<Location> locations = hoppersByChunk.get(chunkKey(location));
+        if (locations != null) locations.remove(location);
+    }
+
+    @EventHandler
+    public void onChunkLoad(ChunkLoadEvent event) {
+        String key = chunkKey(event.getWorld().getUID().toString(), event.getChunk().getX(), event.getChunk().getZ());
+        loadedChunks.add(key);
+    }
+
+    @EventHandler
+    public void onChunkUnload(ChunkUnloadEvent event) {
+        loadedChunks.remove(chunkKey(event.getWorld().getUID().toString(), event.getChunk().getX(), event.getChunk().getZ()));
+    }
+
+    private String chunkKey(Location location) {
+        return chunkKey(location.getWorld().getUID().toString(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
+    }
+
+    private String chunkKey(String worldId, int x, int z) {
+        return worldId + ':' + x + ':' + z;
+    }
+
+    private int clampLevel(int level) {
+        return Math.max(0, Math.min(level, transferTicks.length - 1));
     }
 
     private void transferOut(Block block, int amount) {
@@ -123,13 +182,7 @@ public class HopperTask extends BukkitRunnable {
         }
     }
 
-    private void collectItems(Location location, HopperData data, int range, int maxAmount) {
-        if (location.getWorld() == null) {
-            return;
-        }
-
-        Inventory inventory = ((org.bukkit.block.Hopper) location.getBlock().getState()).getInventory();
-
+    private void collectItems(Location location, HopperData data, Inventory inventory, int range, int maxAmount) {
         for (Entity entity : location.getWorld().getNearbyEntities(location, range, range, range)) {
             if (!(entity instanceof Item)) {
                 continue;

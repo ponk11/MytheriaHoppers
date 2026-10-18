@@ -25,6 +25,7 @@ public class HopperCommand implements CommandExecutor {
                 return true;
             }
             plugin.reloadConfig();
+            plugin.refreshHopperTaskConfiguration();
             sender.sendMessage(color("&dMytheria Hoppers &8» &aConfig reloaded!"));
             return true;
         }

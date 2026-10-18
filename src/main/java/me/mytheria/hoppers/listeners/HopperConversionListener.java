@@ -140,6 +140,7 @@ public class HopperConversionListener implements Listener {
                 if (state.getType() != Material.HOPPER) continue;
                 if (!plugin.getHopperManager().getHoppers().containsKey(state.getLocation())) {
                     plugin.getHopperManager().getHoppers().put(state.getLocation(), new HopperData());
+                    plugin.getHopperTask().indexHopper(state.getLocation());
                     changed = true;
                 }
             }

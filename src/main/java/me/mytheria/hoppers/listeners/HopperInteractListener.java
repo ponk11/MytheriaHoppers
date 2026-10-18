@@ -33,7 +33,6 @@ public class HopperInteractListener implements Listener {
             return;
         }
 
-        // SuperiorSkyblock Protection Check
         if (Bukkit.getPluginManager().isPluginEnabled("SuperiorSkyblock2")) {
             Island island = SuperiorSkyblockAPI.getIslandAt(block.getLocation());
             if (island != null) {
@@ -49,7 +48,6 @@ public class HopperInteractListener implements Listener {
             return;
         }
 
-        // Normal block breaking must not be cancelled.
         if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
             if (!player.isSneaking()) {
                 return;
@@ -59,7 +57,6 @@ public class HopperInteractListener implements Listener {
             return;
         }
 
-        // Right-click opens the hopper inventory.
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             event.setCancelled(true);
             player.openInventory(((org.bukkit.block.Hopper) block.getState()).getInventory());

@@ -78,7 +78,6 @@ public class HopperGUI {
         HopperData data = plugin.getHopperManager().getData(location);
 
         if (!data.isFilterUnlocked()) {
-            // Show unlock button
             double unlockCost = plugin.getConfig().getDouble("filter.unlock-cost", plugin.getConfig().getDouble("filter-unlock-cost", 5000000.0));
             ItemStack unlockItem = createGuiItem(
                     Material.DIAMOND_BLOCK,
@@ -88,7 +87,6 @@ public class HopperGUI {
             );
             gui.setItem(13, unlockItem);
         } else {
-            // Slot 26 clears the current selection.
             if (!data.getFilteredMaterials().isEmpty()) {
                 ItemStack selectedItem = createGuiItem(
                         Material.BARRIER,
@@ -105,7 +103,6 @@ public class HopperGUI {
                 gui.setItem(26, emptySlot);
             }
 
-            // Each unlocked slot stores one allowed material.
             int availableSlots = data.getUnlockedFilterSlots();
             for (int i = 0; i < availableSlots && i < 18; i++) {
                 Material filtered = data.getFilteredMaterials().stream()
@@ -125,7 +122,6 @@ public class HopperGUI {
                 }
             }
 
-            // Show unlock slot buttons (18-25)
             if (availableSlots < 18) {
                 double slotUnlockCost = plugin.getConfig().getDouble("filter.slot-cost", plugin.getConfig().getDouble("filter-slot-unlock-cost", 250000.0));
                 int maxSlots = Math.max(1, Math.min(18, plugin.getConfig().getInt("filter.max-slots", 18)));

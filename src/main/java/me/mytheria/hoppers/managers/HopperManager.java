@@ -161,7 +161,6 @@ public class HopperManager {
                 try {
                     materials.add(org.bukkit.Material.valueOf(selectedItem));
                 } catch (IllegalArgumentException e) {
-                    // Invalid material, skip
                 }
             }
             data.setFilteredMaterials(materials);
@@ -214,7 +213,6 @@ public class HopperManager {
                 plugin.getLogger().warning("Restored hopper data from " + backup.getName() + ".");
                 return recovered;
             } catch (IOException | InvalidConfigurationException ignored) {
-                // Try the next most recent backup.
             }
         }
         return null;

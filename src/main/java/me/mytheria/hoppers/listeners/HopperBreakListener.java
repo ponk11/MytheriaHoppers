@@ -39,6 +39,7 @@ public class HopperBreakListener implements Listener {
         int rangeLevel = data.getRangeLevel();
 
         plugin.getHopperManager().remove(block.getLocation());
+        plugin.getHopperTask().unindexHopper(block.getLocation());
         plugin.getHopperManager().saveData();
 
         event.setDropItems(false);
