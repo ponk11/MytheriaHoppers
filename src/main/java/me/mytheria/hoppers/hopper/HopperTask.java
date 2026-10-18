@@ -1,10 +1,9 @@
 package me.mytheria.hoppers.hopper;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -33,8 +32,8 @@ public class HopperTask extends BukkitRunnable implements Listener {
     private Method setTransferCooldown;
     private Class<?> cooldownClass;
     private int tickStep = 2;
-    private final Map<String, Set<Location>> hoppersByChunk = new HashMap<>();
-    private final Set<String> loadedChunks = new HashSet<>();
+    private final Map<String, Set<Location>> hoppersByChunk = new ConcurrentHashMap<>();
+    private final Set<String> loadedChunks = ConcurrentHashMap.newKeySet();
 
     public HopperTask(MytheriaHoppers plugin) {
         this.plugin = plugin;
@@ -117,7 +116,7 @@ public class HopperTask extends BukkitRunnable implements Listener {
     public void indexHopper(Location location) {
         if (location == null || location.getWorld() == null) return;
         String key = chunkKey(location);
-        hoppersByChunk.computeIfAbsent(key, ignored -> new HashSet<>()).add(location);
+        hoppersByChunk.computeIfAbsent(key, ignored -> ConcurrentHashMap.newKeySet()).add(location);
         if (location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) loadedChunks.add(key);
     }
 
