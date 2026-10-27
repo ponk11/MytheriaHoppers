@@ -11,14 +11,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import me.mytheria.hoppers.MytheriaHoppers;
-import me.mytheria.hoppers.hopper.HopperData;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -26,7 +24,11 @@ import org.bukkit.block.BlockState;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import me.mytheria.hoppers.MytheriaHoppers;
+import me.mytheria.hoppers.hopper.HopperData;
 
 public class HopperConversionListener implements Listener {
     private static final Pattern REGION_NAME = Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mca");
@@ -44,8 +46,7 @@ public class HopperConversionListener implements Listener {
     public void start() {
         List<WorldFolder> worldFolders = new ArrayList<>();
         for (World world : plugin.getServer().getWorlds()) {
-            for (Chunk chunk : world.getLoadedChunks()) addChunk(world, chunk.getX(), chunk.getZ());
-            worldFolders.add(new WorldFolder(world, world.getWorldFolder()));
+            queueWorld(world, worldFolders);
         }
 
         new BukkitRunnable() {
@@ -83,9 +84,32 @@ public class HopperConversionListener implements Listener {
         addChunk(chunk.getWorld(), chunk.getX(), chunk.getZ());
     }
 
+    @EventHandler
+    public void onWorldLoad(WorldLoadEvent event) {
+        plugin.getHopperManager().loadWorldData(event.getWorld());
+        queueWorld(event.getWorld(), null);
+    }
+
+    private void queueWorld(World world, List<WorldFolder> worldFolders) {
+        for (Chunk chunk : world.getLoadedChunks()) addChunk(world, chunk.getX(), chunk.getZ());
+        if (worldFolders != null) {
+            worldFolders.add(new WorldFolder(world, world.getWorldFolder()));
+        } else {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    findRegions(world, world.getWorldFolder());
+                }
+            }.runTaskAsynchronously(plugin);
+        }
+    }
+
     private void findRegions(WorldFolder worldFolder) {
-        World world = worldFolder.world;
-        Path folder = worldFolder.folder.toPath();
+        findRegions(worldFolder.world, worldFolder.folder);
+    }
+
+    private void findRegions(World world, File worldFolder) {
+        Path folder = worldFolder.toPath();
         if (!Files.isDirectory(folder)) return;
         try (Stream<Path> paths = Files.walk(folder)) {
             paths.filter(Files::isRegularFile).forEach(path -> {

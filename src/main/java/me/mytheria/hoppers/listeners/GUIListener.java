@@ -7,6 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
 import me.mytheria.hoppers.MytheriaHoppers;
@@ -26,6 +27,16 @@ public class GUIListener implements Listener {
         if (event.getClickedInventory() == null) return;
 
         String title = event.getView().getTitle();
+
+        if (HopperGUI.ADMIN_TITLE.equals(title) || HopperGUI.CONFIRM_TITLE.equals(title)
+                || HopperGUI.FINAL_CONFIRM_TITLE.equals(title)) {
+            if (!(event.getWhoClicked() instanceof Player)) return;
+            event.setCancelled(true);
+            Player player = (Player) event.getWhoClicked();
+            if (!event.getClickedInventory().equals(event.getView().getTopInventory())) return;
+            handleAdminClick(player, event, title);
+            return;
+        }
         
         if (title != null && (title.contains("Hopper Upgrades") || title.contains("Item Filter Selection"))) {
             
@@ -57,6 +68,52 @@ public class GUIListener implements Listener {
                     }
                 }
             }
+        }
+    }
+
+    private void handleAdminClick(Player player, InventoryClickEvent event, String title) {
+        int slot = event.getRawSlot();
+        if (HopperGUI.ADMIN_TITLE.equals(title)) {
+            if (slot >= 0 && slot < 45 && event.getClick() == ClickType.SHIFT_RIGHT) {
+                String worldName = plugin.getHopperGUI().getAdminWorldForSlot(player, slot);
+                if (worldName != null) plugin.getHopperGUI().openRemovalConfirmation(player, worldName);
+            } else if (slot == 45) {
+                plugin.getHopperGUI().openAdminGUI(player, -1);
+            } else if (slot == 53) {
+                plugin.getHopperGUI().openAdminGUI(player, Integer.MAX_VALUE);
+            } else if (slot == 49 && plugin.getHopperManager().canUndoLastRemoval()) {
+                int restored = plugin.getHopperManager().undoLastRemoval();
+                plugin.getHopperManager().saveData();
+                player.sendMessage("§aRestored " + restored + " hopper(s) from the last removal.");
+                plugin.getHopperGUI().openAdminGUI(player, 0);
+            } else if (slot == 50) {
+                player.closeInventory();
+            }
+            return;
+        }
+
+        if (HopperGUI.CONFIRM_TITLE.equals(title)) {
+            if (slot == 11) {
+                plugin.getHopperGUI().openFinalRemovalConfirmation(player);
+            } else if (slot == 15) {
+                plugin.getHopperGUI().clearPendingRemoval(player);
+                plugin.getHopperGUI().openAdminGUI(player, 0);
+            }
+            return;
+        }
+
+        if (slot == 11) {
+            String worldName = plugin.getHopperGUI().getPendingRemovalWorld(player);
+            if (worldName != null) {
+                int removed = plugin.getHopperManager().removeWorld(worldName);
+                plugin.getHopperManager().saveData();
+                plugin.getHopperGUI().clearPendingRemoval(player);
+                player.sendMessage("§cRemoved " + removed + " hopper(s) from " + worldName + ".");
+            }
+            plugin.getHopperGUI().openAdminGUI(player, 0);
+        } else if (slot == 15) {
+            plugin.getHopperGUI().clearPendingRemoval(player);
+            plugin.getHopperGUI().openAdminGUI(player, 0);
         }
     }
 

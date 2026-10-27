@@ -13,9 +13,16 @@ import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Hopper;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.inventory.ItemStack;
 
 import me.mytheria.hoppers.MytheriaHoppers;
 import me.mytheria.hoppers.hopper.HopperData;
@@ -26,8 +33,10 @@ public class HopperManager {
     private final Map<Location, HopperData> hopperDataMap = new HashMap<>();
     private final File dataFile;
     private final File backupFolder;
+    private final Map<String, Map<String, HopperData>> pendingWorldData = new HashMap<>();
     private FileConfiguration dataConfig;
     private boolean dataLoadFailed;
+    private RemovalSnapshot lastRemoval;
 
     public HopperManager(MytheriaHoppers plugin) {
         this.plugin = plugin;
@@ -48,12 +57,116 @@ public class HopperManager {
         return hopperDataMap;
     }
 
+    public void loadWorldData(World world) {
+        Map<String, HopperData> worldData = pendingWorldData.remove(world.getName());
+        if (worldData == null) return;
+
+        for (Map.Entry<String, HopperData> entry : worldData.entrySet()) {
+            String[] coordinates = entry.getKey().split(",");
+            if (coordinates.length != 3) continue;
+            try {
+                Location location = new Location(
+                        world,
+                        Integer.parseInt(coordinates[0]),
+                        Integer.parseInt(coordinates[1]),
+                        Integer.parseInt(coordinates[2])
+                );
+                hopperDataMap.put(location, entry.getValue());
+                if (plugin.getHopperTask() != null) plugin.getHopperTask().indexHopper(location);
+            } catch (NumberFormatException ignored) {
+                plugin.getLogger().warning("Skipping invalid saved hopper location in world " + world.getName() + ".");
+            }
+        }
+    }
+
     public void remove(Location location) {
         hopperDataMap.remove(location);
     }
 
     public void removeData(Location location) {
         remove(location);
+    }
+
+    public boolean canUndoLastRemoval() {
+        return lastRemoval != null && !lastRemoval.hoppers.isEmpty();
+    }
+
+    public int removeWorld(String worldName) {
+        RemovalSnapshot snapshot = new RemovalSnapshot();
+        java.util.Iterator<Map.Entry<Location, HopperData>> iterator = hopperDataMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Location, HopperData> entry = iterator.next();
+            Location location = entry.getKey();
+            if (location.getWorld() == null || !location.getWorld().getName().equals(worldName)) continue;
+
+            Block block = location.getBlock();
+            BlockData blockData = block.getBlockData().clone();
+            ItemStack[] contents = null;
+            BlockState state = block.getState();
+            if (state instanceof Hopper) {
+                ItemStack[] original = ((Hopper) state).getInventory().getContents();
+                contents = new ItemStack[original.length];
+                for (int i = 0; i < original.length; i++) {
+                    contents[i] = original[i] == null ? null : original[i].clone();
+                }
+            }
+            snapshot.hoppers.add(new RemovedHopper(location, copyData(entry.getValue()), blockData, contents));
+            iterator.remove();
+            if (plugin.getHopperTask() != null) plugin.getHopperTask().unindexHopper(location);
+            if (block.getType() == Material.HOPPER) block.setType(Material.AIR, false);
+        }
+        if (!snapshot.hoppers.isEmpty()) lastRemoval = snapshot;
+        return snapshot.hoppers.size();
+    }
+
+    public int undoLastRemoval() {
+        if (!canUndoLastRemoval()) return 0;
+        int restored = 0;
+        for (RemovedHopper removed : lastRemoval.hoppers) {
+            Block block = removed.location.getBlock();
+            if (block.getType() != Material.AIR && block.getType() != Material.HOPPER) continue;
+            if (block.getType() == Material.AIR) block.setBlockData(removed.blockData, false);
+            BlockState state = block.getState();
+            if (state instanceof Hopper && removed.contents != null) {
+                ((Hopper) state).getInventory().setContents(removed.contents);
+                state.update(true, false);
+            }
+            hopperDataMap.put(removed.location, copyData(removed.data));
+            if (plugin.getHopperTask() != null) plugin.getHopperTask().indexHopper(removed.location);
+            restored++;
+        }
+        lastRemoval = null;
+        return restored;
+    }
+
+    private HopperData copyData(HopperData source) {
+        HopperData copy = new HopperData();
+        copy.setSpeedLevel(source.getSpeedLevel());
+        copy.setRangeLevel(source.getRangeLevel());
+        copy.setLastTransferTick(source.getLastTransferTick());
+        copy.setFilterUnlocked(source.isFilterUnlocked());
+        copy.setUnlockedFilterSlots(source.getUnlockedFilterSlots());
+        copy.setFilteredMaterials(new java.util.HashSet<>(source.getFilteredMaterials()));
+        copy.setFilterEnabled(source.isFilterEnabled());
+        return copy;
+    }
+
+    private static class RemovalSnapshot {
+        private final java.util.List<RemovedHopper> hoppers = new java.util.ArrayList<>();
+    }
+
+    private static class RemovedHopper {
+        private final Location location;
+        private final HopperData data;
+        private final BlockData blockData;
+        private final ItemStack[] contents;
+
+        private RemovedHopper(Location location, HopperData data, BlockData blockData, ItemStack[] contents) {
+            this.location = location;
+            this.data = data;
+            this.blockData = blockData;
+            this.contents = contents;
+        }
     }
 
     public void saveData() {
@@ -81,6 +194,12 @@ public class HopperManager {
                 dataConfig.set(path + ".selectedFilterItem", data.getSelectedFilterItem().toString());
             }
             dataConfig.set(path + ".filteredMaterials", data.getFilteredMaterials().stream().map(Enum::name).collect(Collectors.toList()));
+        }
+        for (Map.Entry<String, Map<String, HopperData>> worldEntry : pendingWorldData.entrySet()) {
+            for (Map.Entry<String, HopperData> hopperEntry : worldEntry.getValue().entrySet()) {
+                String path = "hoppers." + worldEntry.getKey() + "," + hopperEntry.getKey();
+                writeHopperData(path, hopperEntry.getValue());
+            }
         }
 
         File temporaryFile = new File(plugin.getDataFolder(), "data.yml.tmp");
@@ -126,49 +245,70 @@ public class HopperManager {
         }
 
         for (String key : dataConfig.getConfigurationSection("hoppers").getKeys(false)) {
-            String[] parts = key.split(",");
-            if (parts.length != 4) continue;
+            int zSeparator = key.lastIndexOf(',');
+            int ySeparator = zSeparator < 0 ? -1 : key.lastIndexOf(',', zSeparator - 1);
+            int xSeparator = ySeparator < 0 ? -1 : key.lastIndexOf(',', ySeparator - 1);
+            if (xSeparator < 0 || ySeparator < 0 || zSeparator < 0) continue;
 
-            String worldName = parts[0];
+            String worldName = key.substring(0, xSeparator);
             int x;
             int y;
             int z;
             try {
-                x = Integer.parseInt(parts[1]);
-                y = Integer.parseInt(parts[2]);
-                z = Integer.parseInt(parts[3]);
+                x = Integer.parseInt(key.substring(xSeparator + 1, ySeparator));
+                y = Integer.parseInt(key.substring(ySeparator + 1, zSeparator));
+                z = Integer.parseInt(key.substring(zSeparator + 1));
             } catch (NumberFormatException ignored) {
                 plugin.getLogger().warning("Skipping invalid saved hopper location: " + key);
                 continue;
             }
 
-            if (Bukkit.getWorld(worldName) == null) continue;
-
-            Location loc = new Location(Bukkit.getWorld(worldName), x, y, z);
-            HopperData data = new HopperData();
-            data.setSpeedLevel(dataConfig.getInt("hoppers." + key + ".speed", 0));
-            data.setRangeLevel(dataConfig.getInt("hoppers." + key + ".range", 0));
-            data.setFilterEnabled(dataConfig.getBoolean("hoppers." + key + ".filterEnabled", false));
-            data.setFilterUnlocked(dataConfig.getBoolean("hoppers." + key + ".filterUnlocked", false));
-            data.setUnlockedFilterSlots(dataConfig.getInt("hoppers." + key + ".unlockedFilterSlots", 0));
-            
-            String selectedItem = dataConfig.getString("hoppers." + key + ".selectedFilterItem");
-            java.util.Set<org.bukkit.Material> materials = new java.util.HashSet<>();
-            for (String name : dataConfig.getStringList("hoppers." + key + ".filteredMaterials")) {
-                try { materials.add(org.bukkit.Material.valueOf(name)); } catch (IllegalArgumentException ignored) { }
+            HopperData data = readHopperData(key);
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) {
+                pendingWorldData.computeIfAbsent(worldName, ignored -> new HashMap<>())
+                        .put(x + "," + y + "," + z, data);
+                continue;
             }
-            if (selectedItem != null && !selectedItem.isEmpty()) {
-                try {
-                    materials.add(org.bukkit.Material.valueOf(selectedItem));
-                } catch (IllegalArgumentException e) {
-                }
-            }
-            data.setFilteredMaterials(materials);
-            data.setFilterUnlocked(dataConfig.getBoolean("hoppers." + key + ".filterUnlocked", false));
-            data.setUnlockedFilterSlots(Math.max(data.getUnlockedFilterSlots(), dataConfig.getInt("hoppers." + key + ".unlockedFilterSlots", materials.size())));
 
-            hopperDataMap.put(loc, data);
+            hopperDataMap.put(new Location(world, x, y, z), data);
         }
+    }
+
+    private HopperData readHopperData(String key) {
+        HopperData data = new HopperData();
+        data.setSpeedLevel(dataConfig.getInt("hoppers." + key + ".speed", 0));
+        data.setRangeLevel(dataConfig.getInt("hoppers." + key + ".range", 0));
+        data.setFilterEnabled(dataConfig.getBoolean("hoppers." + key + ".filterEnabled", false));
+        data.setFilterUnlocked(dataConfig.getBoolean("hoppers." + key + ".filterUnlocked", false));
+        data.setUnlockedFilterSlots(dataConfig.getInt("hoppers." + key + ".unlockedFilterSlots", 0));
+
+        java.util.Set<Material> materials = new java.util.HashSet<>();
+        for (String name : dataConfig.getStringList("hoppers." + key + ".filteredMaterials")) {
+            try { materials.add(Material.valueOf(name)); } catch (IllegalArgumentException ignored) { }
+        }
+        String selectedItem = dataConfig.getString("hoppers." + key + ".selectedFilterItem");
+        if (selectedItem != null && !selectedItem.isEmpty()) {
+            try { materials.add(Material.valueOf(selectedItem)); } catch (IllegalArgumentException ignored) { }
+        }
+        data.setFilteredMaterials(materials);
+        data.setFilterUnlocked(dataConfig.getBoolean("hoppers." + key + ".filterUnlocked", false));
+        data.setUnlockedFilterSlots(Math.max(data.getUnlockedFilterSlots(),
+                dataConfig.getInt("hoppers." + key + ".unlockedFilterSlots", materials.size())));
+        return data;
+    }
+
+    private void writeHopperData(String path, HopperData data) {
+        dataConfig.set(path + ".speed", data.getSpeedLevel());
+        dataConfig.set(path + ".range", data.getRangeLevel());
+        dataConfig.set(path + ".filterEnabled", data.isFilterEnabled());
+        dataConfig.set(path + ".filterUnlocked", data.isFilterUnlocked());
+        dataConfig.set(path + ".unlockedFilterSlots", data.getUnlockedFilterSlots());
+        if (data.getSelectedFilterItem() != null) {
+            dataConfig.set(path + ".selectedFilterItem", data.getSelectedFilterItem().toString());
+        }
+        dataConfig.set(path + ".filteredMaterials", data.getFilteredMaterials().stream()
+                .map(Enum::name).collect(Collectors.toList()));
     }
 
     private FileConfiguration readDataFile(File file) throws IOException, InvalidConfigurationException {

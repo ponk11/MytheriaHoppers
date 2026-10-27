@@ -10,6 +10,7 @@ Mytheria Hoppers lets players upgrade placed hoppers through an in-game menu. Up
 - Set upgrade prices, filter prices, slot limits, and hopper transfer settings in `plugins/MytheriaHoppers/config.yml`.
 - Save hopper upgrades and filter settings when the server shuts down.
 - Convert existing hoppers gradually after installation to limit the work done during startup.
+- Support worlds loaded by Multiverse-Core, Iris, and other world-management plugins.
 
 ## Install
 
@@ -31,6 +32,7 @@ By default, speed and range each have four upgrade levels. The filter starts loc
 | --- | --- |
 | `/mh` | Show the plugin command hint. |
 | `/mh reload` | Reload the plugin configuration. |
+| `/mh admin` | Open the administrator hopper world-count and removal menu. |
 
 `/mytheriahoppers` is also available as the full command name.
 
@@ -49,3 +51,5 @@ By default, speed and range each have four upgrade levels. The filter starts loc
 The main settings are in `plugins/MytheriaHoppers/config.yml`. The default speed upgrades use transfer intervals of 8, 6, 4, and 2 ticks. The default range levels are 2, 4, 6, and 8 blocks. Prices and these values can be changed in the matching `speed-upgrades` and `range-upgrades` sections.
 
 `conversion.chunks-per-second` controls how quickly saved chunks are checked for existing hoppers after installation. The default is 2 chunks per second. Use `/mh reload` after changing settings.
+
+Worlds loaded after Mytheria Hoppers starts are detected automatically. Saved hopper data waits for those worlds to load, and their loaded and saved chunks are scanned for existing hoppers. The admin menu is available with `/mh admin` for players with `mytheriahoppers.admin`.
