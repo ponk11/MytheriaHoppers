@@ -7,31 +7,29 @@ softdepend:
   - Vault
   - CoinsEngine
   - SuperiorSkyblock2
+  - Multiverse-Core
+  - Iris
 
 commands:
   mytheriahoppers:
     description: Mytheria Hoppers administration command
     aliases:
       - mh
-    usage: /mytheriahoppers <reload>
+    usage: /mytheriahoppers <reload|admin>
 
 permissions:
   mytheriahoppers.use:
     description: Allows players to use Mytheria Hoppers
     default: true
-
   mytheriahoppers.filter:
     description: Allows unlocking and using the hopper item filter feature
     default: true
-
   mytheriahoppers.admin:
     description: Allows access to Mytheria Hoppers administration
     default: op
-
   mytheriahoppers.admin.reload:
     description: Allows reloading the Mytheria Hoppers configuration
     default: op
-
   mytheriahoppers.admin.bypass:
     description: Allows bypassing Mytheria Hopper restrictions
     default: op

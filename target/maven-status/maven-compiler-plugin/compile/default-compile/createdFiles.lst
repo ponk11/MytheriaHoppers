@@ -1,3 +1,4 @@
+me/mytheria/hoppers/managers/HopperManager$1.class
 me/mytheria/hoppers/economy/VaultEconomyProvider.class
 me/mytheria/hoppers/listeners/HopperBlockListener.class
 me/mytheria/hoppers/listeners/HopperConversionListener$RegionJob.class
@@ -14,11 +15,13 @@ me/mytheria/hoppers/util/LocationUtil.class
 me/mytheria/hoppers/listeners/HopperConversionListener$1.class
 me/mytheria/hoppers/listeners/HopperPlaceListener.class
 me/mytheria/hoppers/economy/EconomyProvider.class
+me/mytheria/hoppers/managers/HopperManager$RemovalSnapshot.class
 me/mytheria/hoppers/util/ColorUtil.class
 me/mytheria/hoppers/gui/HopperGUI.class
 me/mytheria/hoppers/gui/UpgradeManager.class
 me/mytheria/hoppers/economy/EconomyManager.class
 me/mytheria/hoppers/MytheriaHoppers.class
+me/mytheria/hoppers/listeners/HopperConversionListener$3.class
 me/mytheria/hoppers/hopper/HopperKeys.class
 me/mytheria/hoppers/hopper/HopperTask.class
 me/mytheria/hoppers/listeners/HopperConversionListener$2.class
@@ -29,4 +32,5 @@ me/mytheria/hoppers/listeners/HopperConversionListener.class
 me/mytheria/hoppers/hopper/HopperItem.class
 me/mytheria/hoppers/economy/VaultEconomy.class
 me/mytheria/hoppers/listeners/HopperConversionListener$WorldFolder.class
+me/mytheria/hoppers/managers/HopperManager$RemovedHopper.class
 me/mytheria/hoppers/listeners/HopperInteractListener.class
