@@ -1,7 +1,9 @@
 package me.mytheria.hoppers.hopper;
 
 import java.lang.reflect.Method;
+import java.util.Comparator;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,6 +36,8 @@ public class HopperTask extends BukkitRunnable implements Listener {
     private int tickStep = 2;
     private final Map<String, Set<Location>> hoppersByChunk = new ConcurrentHashMap<>();
     private final Set<String> loadedChunks = ConcurrentHashMap.newKeySet();
+    private final PriorityQueue<ScheduledHopper> scheduledHoppers =
+            new PriorityQueue<>(Comparator.comparingInt(entry -> entry.dueTick));
 
     public HopperTask(MytheriaHoppers plugin) {
         this.plugin = plugin;
@@ -52,78 +56,79 @@ public class HopperTask extends BukkitRunnable implements Listener {
             ranges[level] = Math.max(1, plugin.getConfig().getInt("range-upgrades." + level + ".range", 1));
         }
         tickStep = 2;
+        scheduledHoppers.clear();
+        for (Map.Entry<String, Set<Location>> entry : hoppersByChunk.entrySet()) {
+            for (Location location : entry.getValue()) schedule(location, currentTick);
+        }
     }
 
     @Override
     public void run() {
         currentTick += tickStep;
 
-        for (String chunkKey : loadedChunks) {
+        while (!scheduledHoppers.isEmpty() && scheduledHoppers.peek().dueTick <= currentTick) {
+            ScheduledHopper scheduled = scheduledHoppers.poll();
+            Location location = scheduled.location;
+            String chunkKey = chunkKey(location);
             Set<Location> locations = hoppersByChunk.get(chunkKey);
-            if (locations == null) continue;
-            for (Location location : locations) {
-                HopperData data = plugin.getHopperManager().getHoppers().get(location);
-                if (data == null) continue;
+            if (locations == null || !locations.contains(location)) continue;
 
-                Block block = location.getBlock();
-                if (block.getType() != Material.HOPPER) {
-                    continue;
-                }
+            HopperData data = plugin.getHopperManager().getHoppers().get(location);
+            if (data == null) continue;
 
-                if (block.isBlockPowered() || block.isBlockIndirectlyPowered()) {
-                    continue;
-                }
+            schedule(location, currentTick);
+            if (!loadedChunks.contains(chunkKey)) continue;
 
-                int speedLevel = clampLevel(data.getSpeedLevel());
-                int configuredTransferTicks = transferTicks[speedLevel];
+            Block block = location.getBlock();
+            if (block.getType() != Material.HOPPER) continue;
+            if (block.isBlockPowered() || block.isBlockIndirectlyPowered()) continue;
 
-                if (currentTick - data.getLastTransferTick() < configuredTransferTicks) {
-                    continue;
-                }
+            int speedLevel = clampLevel(data.getSpeedLevel());
+            int configuredTransferTicks = transferTicks[speedLevel];
+            data.setLastTransferTick(currentTick);
 
-                data.setLastTransferTick(currentTick);
+            int range = ranges[clampLevel(data.getRangeLevel())];
+            int amountToTransfer = transferAmounts[speedLevel];
 
-                int range = ranges[clampLevel(data.getRangeLevel())];
-                int amountToTransfer = transferAmounts[speedLevel];
-
-                org.bukkit.block.Hopper hopper = (org.bukkit.block.Hopper) block.getState();
-                if (cooldownClass != hopper.getClass()) {
-                    cooldownClass = hopper.getClass();
-                    try {
-                        setTransferCooldown = cooldownClass.getMethod("setTransferCooldown", int.class);
-                    } catch (ReflectiveOperationException ignored) {
-                        setTransferCooldown = null;
-                    }
-                }
-                boolean customCooldown = setTransferCooldown != null;
-                if (customCooldown) {
-                    try {
-                        setTransferCooldown.invoke(hopper, configuredTransferTicks);
-                    } catch (ReflectiveOperationException ignored) {
-                        customCooldown = false;
-                    }
-                }
-                hopper.update(true, false);
-
-                collectItems(location, data, hopper.getInventory(), range, amountToTransfer);
-                if (!customCooldown) {
-                    transferOut(block, Math.max(1, amountToTransfer));
+            org.bukkit.block.Hopper hopper = (org.bukkit.block.Hopper) block.getState();
+            if (cooldownClass != hopper.getClass()) {
+                cooldownClass = hopper.getClass();
+                try {
+                    setTransferCooldown = cooldownClass.getMethod("setTransferCooldown", int.class);
+                } catch (ReflectiveOperationException ignored) {
+                    setTransferCooldown = null;
                 }
             }
+            boolean customCooldown = setTransferCooldown != null;
+            if (customCooldown) {
+                try {
+                    setTransferCooldown.invoke(hopper, configuredTransferTicks);
+                } catch (ReflectiveOperationException ignored) {
+                    customCooldown = false;
+                }
+            }
+            hopper.update(true, false);
+
+            collectItems(location, data, hopper.getInventory(), range, amountToTransfer);
+            if (!customCooldown) transferOut(block, Math.max(1, amountToTransfer));
         }
     }
 
     public void indexHopper(Location location) {
         if (location == null || location.getWorld() == null) return;
         String key = chunkKey(location);
-        hoppersByChunk.computeIfAbsent(key, ignored -> ConcurrentHashMap.newKeySet()).add(location);
+        if (hoppersByChunk.computeIfAbsent(key, ignored -> ConcurrentHashMap.newKeySet()).add(location)) {
+            schedule(location, currentTick);
+        }
         if (location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) loadedChunks.add(key);
     }
 
     public void unindexHopper(Location location) {
         if (location == null || location.getWorld() == null) return;
         Set<Location> locations = hoppersByChunk.get(chunkKey(location));
-        if (locations != null) locations.remove(location);
+        if (locations != null && locations.remove(location) && locations.isEmpty()) {
+            hoppersByChunk.remove(chunkKey(location), locations);
+        }
     }
 
     @EventHandler
@@ -147,6 +152,24 @@ public class HopperTask extends BukkitRunnable implements Listener {
 
     private int clampLevel(int level) {
         return Math.max(0, Math.min(level, transferTicks.length - 1));
+    }
+
+    private void schedule(Location location, int fromTick) {
+        HopperData data = plugin.getHopperManager().getHoppers().get(location);
+        if (data == null) return;
+        int interval = transferTicks[clampLevel(data.getSpeedLevel())];
+        int dueTick = Math.max(fromTick + tickStep, data.getLastTransferTick() + interval);
+        scheduledHoppers.add(new ScheduledHopper(location, dueTick));
+    }
+
+    private static final class ScheduledHopper {
+        private final Location location;
+        private final int dueTick;
+
+        private ScheduledHopper(Location location, int dueTick) {
+            this.location = location;
+            this.dueTick = dueTick;
+        }
     }
 
     private void transferOut(Block block, int amount) {
