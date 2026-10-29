@@ -44,6 +44,11 @@ public class HopperConversionListener implements Listener {
     }
 
     public void start() {
+        if (!plugin.getConfig().getBoolean("conversion.enabled", false)) {
+            plugin.getLogger().info("Saved-chunk hopper conversion is disabled.");
+            return;
+        }
+
         List<WorldFolder> worldFolders = new ArrayList<>();
         for (World world : plugin.getServer().getWorlds()) {
             queueWorld(world, worldFolders);

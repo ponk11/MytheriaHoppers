@@ -3,8 +3,12 @@ settings:
   max-range-level: 4
   default-transfer-ticks: 8
   default-transfer-amount: 1
+  # Hard cap per scheduler run to prevent large installations from monopolizing the server thread.
+  max-hoppers-per-run: 25
 
 conversion:
+  # Enable only while importing hoppers from existing world chunks. Disable after the first migration.
+  enabled: false
   # Saved chunks are checked gradually so startup does not load entire worlds at once.
   chunks-per-second: 2
 

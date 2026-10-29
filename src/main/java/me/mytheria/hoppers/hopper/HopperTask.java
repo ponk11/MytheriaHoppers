@@ -34,6 +34,7 @@ public class HopperTask extends BukkitRunnable implements Listener {
     private Method setTransferCooldown;
     private Class<?> cooldownClass;
     private int tickStep = 2;
+    private int maxHoppersPerRun = 25;
     private final Map<String, Set<Location>> hoppersByChunk = new ConcurrentHashMap<>();
     private final Set<String> loadedChunks = ConcurrentHashMap.newKeySet();
     private final PriorityQueue<ScheduledHopper> scheduledHoppers =
@@ -56,6 +57,7 @@ public class HopperTask extends BukkitRunnable implements Listener {
             ranges[level] = Math.max(1, plugin.getConfig().getInt("range-upgrades." + level + ".range", 1));
         }
         tickStep = 2;
+        maxHoppersPerRun = Math.max(1, plugin.getConfig().getInt("settings.max-hoppers-per-run", 25));
         scheduledHoppers.clear();
         for (Map.Entry<String, Set<Location>> entry : hoppersByChunk.entrySet()) {
             for (Location location : entry.getValue()) schedule(location, currentTick);
@@ -66,7 +68,9 @@ public class HopperTask extends BukkitRunnable implements Listener {
     public void run() {
         currentTick += tickStep;
 
-        while (!scheduledHoppers.isEmpty() && scheduledHoppers.peek().dueTick <= currentTick) {
+        int processed = 0;
+        while (processed < maxHoppersPerRun
+                && !scheduledHoppers.isEmpty() && scheduledHoppers.peek().dueTick <= currentTick) {
             ScheduledHopper scheduled = scheduledHoppers.poll();
             Location location = scheduled.location;
             String chunkKey = chunkKey(location);
@@ -76,8 +80,9 @@ public class HopperTask extends BukkitRunnable implements Listener {
             HopperData data = plugin.getHopperManager().getHoppers().get(location);
             if (data == null) continue;
 
-            schedule(location, currentTick);
             if (!loadedChunks.contains(chunkKey)) continue;
+            schedule(location, currentTick);
+            processed++;
 
             Block block = location.getBlock();
             if (block.getType() != Material.HOPPER) continue;
@@ -135,6 +140,10 @@ public class HopperTask extends BukkitRunnable implements Listener {
     public void onChunkLoad(ChunkLoadEvent event) {
         String key = chunkKey(event.getWorld().getUID().toString(), event.getChunk().getX(), event.getChunk().getZ());
         loadedChunks.add(key);
+        Set<Location> locations = hoppersByChunk.get(key);
+        if (locations != null) {
+            for (Location location : locations) schedule(location, currentTick);
+        }
     }
 
     @EventHandler
