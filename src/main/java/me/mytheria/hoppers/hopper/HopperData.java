@@ -9,6 +9,7 @@ public class HopperData {
 
     private int speedLevel = 0;
     private int rangeLevel = 0;
+    private HopperType type = HopperType.ALL;
     private int lastTransferTick = 0;
     private boolean filterEnabled = false;
     private boolean filterUnlocked = false;
@@ -30,6 +31,14 @@ public class HopperData {
 
     public void setRangeLevel(int rangeLevel) {
         this.rangeLevel = rangeLevel;
+    }
+
+    public HopperType getType() {
+        return type;
+    }
+
+    public void setType(HopperType type) {
+        this.type = type == null ? HopperType.ALL : type;
     }
 
     public int getLastTransferTick() {

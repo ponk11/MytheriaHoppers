@@ -53,3 +53,25 @@ The main settings are in `plugins/MytheriaHoppers/config.yml`. The default speed
 `conversion.chunks-per-second` controls how quickly saved chunks are checked for existing hoppers after installation. The default is 2 chunks per second. Use `/mh reload` after changing settings.
 
 Worlds loaded after Mytheria Hoppers starts are detected automatically. Saved hopper data waits for those worlds to load, and their loaded and saved chunks are scanned for existing hoppers. The admin menu is available with `/mh admin` for players with `mytheriahoppers.admin`.
+# Mytheria Hoppers
+
+Mytheria Hoppers is a configurable Paper 1.16.5 hopper upgrade plugin.
+
+## Hopper types
+
+When `hopper-types.enabled` is enabled, administrators can create:
+
+- **Crop** hoppers for farm output
+- **Mob** hoppers for mob drops
+- **Ore** hoppers for mined resources
+- **Universal** hoppers for the original unrestricted behavior
+
+Typed hoppers start with a one-chunk collection radius. Their range upgrades increase
+the chunk radius, while universal hoppers retain block-radius behavior. Use
+`/mh give <player> <all|crop|mob|ore> [amount]` to create hopper items.
+
+## Administration
+
+`/mh admin` opens the administration panel. It includes per-world removal with
+two-step confirmation, undo for the last removal, and a settings panel where
+administrators can toggle typed hoppers or reload the configuration.

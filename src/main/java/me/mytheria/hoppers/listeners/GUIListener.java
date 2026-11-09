@@ -29,7 +29,7 @@ public class GUIListener implements Listener {
         String title = event.getView().getTitle();
 
         if (HopperGUI.ADMIN_TITLE.equals(title) || HopperGUI.CONFIRM_TITLE.equals(title)
-                || HopperGUI.FINAL_CONFIRM_TITLE.equals(title)) {
+                || HopperGUI.FINAL_CONFIRM_TITLE.equals(title) || HopperGUI.SETTINGS_TITLE.equals(title)) {
             if (!(event.getWhoClicked() instanceof Player)) return;
             event.setCancelled(true);
             Player player = (Player) event.getWhoClicked();
@@ -86,8 +86,28 @@ public class GUIListener implements Listener {
                 plugin.getHopperManager().saveData();
                 player.sendMessage("§aRestored " + restored + " hopper(s) from the last removal.");
                 plugin.getHopperGUI().openAdminGUI(player, 0);
+            } else if (slot == 48) {
+                plugin.getHopperGUI().openAdminSettings(player);
             } else if (slot == 50) {
                 player.closeInventory();
+            }
+            return;
+        }
+
+        if (HopperGUI.SETTINGS_TITLE.equals(title)) {
+            if (slot == 11) {
+                boolean enabled = plugin.getConfig().getBoolean("hopper-types.enabled", true);
+                plugin.getConfig().set("hopper-types.enabled", !enabled);
+                plugin.saveConfig();
+                player.sendMessage("§dTyped hoppers §7are now " + (!enabled ? "§aenabled" : "§cdisabled") + "§7.");
+                plugin.getHopperGUI().openAdminSettings(player);
+            } else if (slot == 15) {
+                player.closeInventory();
+            } else if (slot == 14) {
+                plugin.reloadConfig();
+                plugin.refreshHopperTaskConfiguration();
+                player.sendMessage("§aMytheria Hoppers configuration reloaded.");
+                plugin.getHopperGUI().openAdminSettings(player);
             }
             return;
         }

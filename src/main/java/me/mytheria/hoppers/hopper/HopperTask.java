@@ -214,11 +214,19 @@ public class HopperTask extends BukkitRunnable implements Listener {
     }
 
     private void collectItems(Location location, HopperData data, Inventory inventory, int range, int maxAmount) {
-        for (Entity entity : location.getWorld().getNearbyEntities(location, range, range, range)) {
+        boolean typedHoppers = plugin.getConfig().getBoolean("hopper-types.enabled", true);
+        boolean chunkRange = typedHoppers && data.getType() != HopperType.ALL;
+        int searchRadius = chunkRange ? (range + 1) * 16 : Math.max(1, range);
+        for (Entity entity : location.getWorld().getNearbyEntities(location, searchRadius, searchRadius, searchRadius)) {
             if (!(entity instanceof Item)) {
                 continue;
             }
             Item item = (Item) entity;
+
+            if (chunkRange && (Math.abs(item.getLocation().getChunk().getX() - location.getChunk().getX()) > range
+                    || Math.abs(item.getLocation().getChunk().getZ() - location.getChunk().getZ()) > range)) {
+                continue;
+            }
 
             if (!item.isValid() || item.isDead()) {
                 continue;
@@ -230,6 +238,9 @@ public class HopperTask extends BukkitRunnable implements Listener {
             }
 
             if (!data.isAllowedByFilter(stack.getType())) {
+                continue;
+            }
+            if (chunkRange && !data.getType().accepts(stack.getType())) {
                 continue;
             }
 

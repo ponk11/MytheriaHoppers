@@ -21,4 +21,8 @@ public final class HopperKeys {
                 "range_level"
         );
     }
+
+    public static NamespacedKey type() {
+        return new NamespacedKey(MytheriaHoppers.getInstance(), "hopper_type");
+    }
 }

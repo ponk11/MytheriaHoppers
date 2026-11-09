@@ -1,4 +1,10 @@
 /target/
+target/
+
+# Local plugin runtime data
+plugins/
+*.jar
+*.tmp
 
 *.class
 *.log

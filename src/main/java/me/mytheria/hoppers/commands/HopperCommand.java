@@ -1,6 +1,9 @@
 package me.mytheria.hoppers.commands;
 
 import me.mytheria.hoppers.MytheriaHoppers;
+import me.mytheria.hoppers.hopper.HopperItem;
+import me.mytheria.hoppers.hopper.HopperType;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -17,7 +20,7 @@ public class HopperCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(color("&dMytheria Hoppers &7- &f/mh reload &7or &f/mh admin"));
+            sender.sendMessage(color("&dMytheria Hoppers &7- &f/mh reload &7| &f/mh admin &7| &f/mh give"));
             return true;
         }
         if (args[0].equalsIgnoreCase("reload")) {
@@ -28,6 +31,40 @@ public class HopperCommand implements CommandExecutor {
             plugin.reloadConfig();
             plugin.refreshHopperTaskConfiguration();
             sender.sendMessage(color("&dMytheria Hoppers &8» &aConfig reloaded!"));
+            return true;
+        }
+        if (args[0].equalsIgnoreCase("give")) {
+            if (!sender.hasPermission("mytheriahoppers.admin")) {
+                sender.sendMessage(color("&cYou do not have permission."));
+                return true;
+            }
+            if (args.length < 3) {
+                sender.sendMessage(color("&cUsage: /mh give <player> <all|crop|mob|ore> [amount]"));
+                return true;
+            }
+            Player target = Bukkit.getPlayerExact(args[1]);
+            HopperType type = HopperType.fromName(args[2]);
+            if (!type.name().equalsIgnoreCase(args[2])) {
+                sender.sendMessage(color("&cUnknown hopper type. Use all, crop, mob, or ore."));
+                return true;
+            }
+            if (target == null) {
+                sender.sendMessage(color("&cThat player is not online."));
+                return true;
+            }
+            int amount = 1;
+            if (args.length > 3) {
+                try {
+                    amount = Math.max(1, Math.min(64, Integer.parseInt(args[3])));
+                } catch (NumberFormatException exception) {
+                    sender.sendMessage(color("&cAmount must be a whole number."));
+                    return true;
+                }
+            }
+            org.bukkit.inventory.ItemStack item = HopperItem.create(type, 0, 0);
+            item.setAmount(amount);
+            target.getInventory().addItem(item);
+            sender.sendMessage(color("&aGave " + amount + " " + type.getDisplayName() + " hopper(s) to " + target.getName() + "."));
             return true;
         }
         if (args[0].equalsIgnoreCase("admin")) {

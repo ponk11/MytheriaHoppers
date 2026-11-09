@@ -6,6 +6,10 @@ settings:
   # Hard cap per scheduler run to prevent large installations from monopolizing the server thread.
   max-hoppers-per-run: 25
 
+hopper-types:
+  # Crop, mob, and ore hoppers use chunk radius range upgrades when enabled.
+  enabled: true
+
 conversion:
   # Enable only while importing hoppers from existing world chunks. Disable after the first migration.
   enabled: false
@@ -23,44 +27,48 @@ speed-upgrades:
   1:
     transfer-ticks: 8
     transfer-amount: 1
-    cost: 50000
+    cost: 250
 
   2:
     transfer-ticks: 6
     transfer-amount: 1
-    cost: 250000
+    cost: 1000
 
   3:
     transfer-ticks: 4
     transfer-amount: 1
-    cost: 1250000
+    cost: 5000
 
   4:
     transfer-ticks: 2
     transfer-amount: 1
-    cost: 6250000
+    cost: 25000
 
 range-upgrades:
 
+  0:
+    range: 0
+    cost: 0
+
   1:
-    range: 2
-    cost: 50000
+    range: 1
+    cost: 500
 
   2:
-    range: 4
-    cost: 250000
+    range: 2
+    cost: 2500
 
   3:
-    range: 6
-    cost: 1250000
+    range: 3
+    cost: 10000
 
   4:
-    range: 8
-    cost: 6250000
+    range: 4
+    cost: 50000
 
 filter:
-  unlock-cost: 5000000
-  slot-cost: 250000
+  unlock-cost: 10000
+  slot-cost: 1000
   max-slots: 18
 
 messages:

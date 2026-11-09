@@ -19,6 +19,10 @@ public final class HopperItem {
             int speedLevel,
             int rangeLevel
     ) {
+        return create(HopperType.ALL, speedLevel, rangeLevel);
+    }
+
+    public static ItemStack create(HopperType type, int speedLevel, int rangeLevel) {
 
         ItemStack item =
                 new ItemStack(Material.HOPPER);
@@ -31,13 +35,19 @@ public final class HopperItem {
         }
 
         meta.setDisplayName(
-                color("&d&lMytheria Hopper")
+                color("&d&lMytheria " + type.getDisplayName() + " Hopper")
         );
 
         List<String> lore =
                 new ArrayList<>();
 
         lore.add(color("&7"));
+        lore.add(
+                color(
+                        "&7Type: &d"
+                                + type.getDisplayName()
+                )
+        );
         lore.add(
                 color(
                         "&7Speed Level: &d"
@@ -74,6 +84,11 @@ public final class HopperItem {
                 HopperKeys.rangeLevel(),
                 PersistentDataType.INTEGER,
                 rangeLevel
+        );
+        meta.getPersistentDataContainer().set(
+                HopperKeys.type(),
+                PersistentDataType.STRING,
+                type.name()
         );
 
         item.setItemMeta(meta);

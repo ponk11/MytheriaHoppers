@@ -26,6 +26,7 @@ import org.bukkit.inventory.ItemStack;
 
 import me.mytheria.hoppers.MytheriaHoppers;
 import me.mytheria.hoppers.hopper.HopperData;
+import me.mytheria.hoppers.hopper.HopperType;
 
 public class HopperManager {
 
@@ -143,6 +144,7 @@ public class HopperManager {
         HopperData copy = new HopperData();
         copy.setSpeedLevel(source.getSpeedLevel());
         copy.setRangeLevel(source.getRangeLevel());
+        copy.setType(source.getType());
         copy.setLastTransferTick(source.getLastTransferTick());
         copy.setFilterUnlocked(source.isFilterUnlocked());
         copy.setUnlockedFilterSlots(source.getUnlockedFilterSlots());
@@ -187,6 +189,7 @@ public class HopperManager {
             HopperData data = entry.getValue();
             dataConfig.set(path + ".speed", data.getSpeedLevel());
             dataConfig.set(path + ".range", data.getRangeLevel());
+            dataConfig.set(path + ".type", data.getType().name());
             dataConfig.set(path + ".filterEnabled", data.isFilterEnabled());
             dataConfig.set(path + ".filterUnlocked", data.isFilterUnlocked());
             dataConfig.set(path + ".unlockedFilterSlots", data.getUnlockedFilterSlots());
@@ -279,6 +282,7 @@ public class HopperManager {
         HopperData data = new HopperData();
         data.setSpeedLevel(dataConfig.getInt("hoppers." + key + ".speed", 0));
         data.setRangeLevel(dataConfig.getInt("hoppers." + key + ".range", 0));
+        data.setType(HopperType.fromName(dataConfig.getString("hoppers." + key + ".type", "ALL")));
         data.setFilterEnabled(dataConfig.getBoolean("hoppers." + key + ".filterEnabled", false));
         data.setFilterUnlocked(dataConfig.getBoolean("hoppers." + key + ".filterUnlocked", false));
         data.setUnlockedFilterSlots(dataConfig.getInt("hoppers." + key + ".unlockedFilterSlots", 0));
@@ -301,6 +305,7 @@ public class HopperManager {
     private void writeHopperData(String path, HopperData data) {
         dataConfig.set(path + ".speed", data.getSpeedLevel());
         dataConfig.set(path + ".range", data.getRangeLevel());
+        dataConfig.set(path + ".type", data.getType().name());
         dataConfig.set(path + ".filterEnabled", data.isFilterEnabled());
         dataConfig.set(path + ".filterUnlocked", data.isFilterUnlocked());
         dataConfig.set(path + ".unlockedFilterSlots", data.getUnlockedFilterSlots());

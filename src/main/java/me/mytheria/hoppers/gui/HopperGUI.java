@@ -19,12 +19,14 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import me.mytheria.hoppers.MytheriaHoppers;
 import me.mytheria.hoppers.hopper.HopperData;
+import me.mytheria.hoppers.hopper.HopperType;
 
 public class HopperGUI {
 
     public static final String ADMIN_TITLE = ChatColor.DARK_RED + "Hopper Administration";
     public static final String CONFIRM_TITLE = ChatColor.DARK_RED + "Confirm Hopper Removal";
     public static final String FINAL_CONFIRM_TITLE = ChatColor.DARK_RED + "Final Removal Confirmation";
+    public static final String SETTINGS_TITLE = ChatColor.DARK_GRAY + "Mytheria Admin Settings";
     private final MytheriaHoppers plugin;
     public static final Map<UUID, Location> openHopperLocations = new HashMap<>();
     private final Map<UUID, Integer> adminPages = new HashMap<>();
@@ -39,6 +41,15 @@ public class HopperGUI {
 
         Inventory gui = Bukkit.createInventory(null, 27, ChatColor.DARK_GRAY + "Hopper Upgrades");
         HopperData data = plugin.getHopperManager().getData(location);
+
+        gui.setItem(4, createGuiItem(
+                data.getType().getIcon(),
+                data.getType().coloredName(),
+                ChatColor.GRAY + "Range upgrades: " + ChatColor.AQUA
+                        + (plugin.getConfig().getBoolean("hopper-types.enabled", true)
+                        && data.getType() != HopperType.ALL ? "chunk radius" : "block radius"),
+                ChatColor.DARK_GRAY + "Managed by an administrator"
+        ));
 
         int nextSpeedLevel = data.getSpeedLevel() + 1;
         double speedCost = plugin.getConfig().getDouble("speed-upgrades." + nextSpeedLevel + ".cost", -1);
@@ -61,6 +72,9 @@ public class HopperGUI {
                 Material.COMPASS,
                 ChatColor.AQUA + "Range Upgrade",
                 ChatColor.GRAY + "Current Level: " + ChatColor.YELLOW + data.getRangeLevel(),
+                ChatColor.GRAY + "Coverage: " + ChatColor.AQUA
+                        + (plugin.getConfig().getBoolean("hopper-types.enabled", true)
+                        && data.getType() != HopperType.ALL ? "nearby chunks" : "nearby blocks"),
                 ChatColor.GRAY + "Next Level Cost: " + ChatColor.GOLD + rangeCostText,
                 ChatColor.YELLOW + "Click to upgrade!"
         );
@@ -74,6 +88,7 @@ public class HopperGUI {
                 ChatColor.YELLOW + "Click to manage item filter"
         );
         gui.setItem(15, filterItem);
+        fillEmptySlots(gui, Material.BLACK_STAINED_GLASS_PANE);
 
         player.openInventory(gui);
     }
@@ -188,6 +203,40 @@ public class HopperGUI {
                 ChatColor.RED + "Close",
                 ChatColor.GRAY + "Close this menu"
         ));
+        gui.setItem(48, createGuiItem(
+                Material.COMPARATOR,
+                ChatColor.LIGHT_PURPLE + "Plugin settings",
+                ChatColor.GRAY + "Toggle hopper types and review defaults",
+                ChatColor.YELLOW + "Click to open"
+        ));
+        fillEmptySlots(gui, Material.GRAY_STAINED_GLASS_PANE);
+        player.openInventory(gui);
+    }
+
+    public void openAdminSettings(Player player) {
+        Inventory gui = Bukkit.createInventory(null, 27, SETTINGS_TITLE);
+        boolean enabled = plugin.getConfig().getBoolean("hopper-types.enabled", true);
+        gui.setItem(11, createGuiItem(
+                enabled ? Material.LIME_DYE : Material.GRAY_DYE,
+                ChatColor.LIGHT_PURPLE + "Typed hoppers",
+                ChatColor.GRAY + "Crop, mob, ore and universal variants",
+                ChatColor.GRAY + "Status: " + (enabled ? ChatColor.GREEN + "Enabled" : ChatColor.RED + "Disabled"),
+                ChatColor.YELLOW + "Click to toggle"
+        ));
+        gui.setItem(13, createGuiItem(
+                Material.BOOK,
+                ChatColor.AQUA + "Range upgrade mode",
+                ChatColor.GRAY + "Typed hoppers: chunk radius",
+                ChatColor.GRAY + "Universal hoppers: block radius"
+        ));
+        gui.setItem(14, createGuiItem(
+                Material.CLOCK,
+                ChatColor.YELLOW + "Reload configuration",
+                ChatColor.GRAY + "Apply config.yml without a restart",
+                ChatColor.YELLOW + "Click to reload"
+        ));
+        gui.setItem(15, createGuiItem(Material.BARRIER, ChatColor.RED + "Close"));
+        fillEmptySlots(gui, Material.BLACK_STAINED_GLASS_PANE);
         player.openInventory(gui);
     }
 
@@ -278,5 +327,12 @@ public class HopperGUI {
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+    private void fillEmptySlots(Inventory inventory, Material material) {
+        ItemStack filler = createGuiItem(material, " ");
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            if (inventory.getItem(slot) == null) inventory.setItem(slot, filler);
+        }
     }
 }

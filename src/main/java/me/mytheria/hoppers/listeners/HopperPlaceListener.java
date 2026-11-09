@@ -3,6 +3,7 @@ package me.mytheria.hoppers.listeners;
 import me.mytheria.hoppers.MytheriaHoppers;
 import me.mytheria.hoppers.hopper.HopperData;
 import me.mytheria.hoppers.hopper.HopperKeys;
+import me.mytheria.hoppers.hopper.HopperType;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -30,6 +31,7 @@ public class HopperPlaceListener implements Listener {
 
         int speedLevel = 0;
         int rangeLevel = 0;
+        HopperType type = HopperType.ALL;
 
         if (item.hasItemMeta()) {
 
@@ -48,6 +50,10 @@ public class HopperPlaceListener implements Listener {
                                         PersistentDataType.INTEGER
                                 );
             }
+
+            String typeName = item.getItemMeta().getPersistentDataContainer().get(
+                    HopperKeys.type(), PersistentDataType.STRING);
+            type = HopperType.fromName(typeName);
 
             if (item.getItemMeta()
                     .getPersistentDataContainer()
@@ -71,6 +77,7 @@ public class HopperPlaceListener implements Listener {
 
         data.setSpeedLevel(speedLevel);
         data.setRangeLevel(rangeLevel);
+        data.setType(type);
 
         plugin.getHopperManager().getHoppers().put(event.getBlock().getLocation(), data);
         plugin.getHopperTask().indexHopper(event.getBlock().getLocation());

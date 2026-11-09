@@ -15,7 +15,7 @@ commands:
     description: Mytheria Hoppers administration command
     aliases:
       - mh
-    usage: /mytheriahoppers <reload|admin>
+    usage: /mytheriahoppers <reload|admin|give>
 
 permissions:
   mytheriahoppers.use:

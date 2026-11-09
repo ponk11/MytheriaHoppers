@@ -54,7 +54,7 @@ public class HopperBreakListener implements Listener {
             if (block.getType() == Material.AIR) {
                 block.getWorld().dropItemNaturally(
                         block.getLocation(),
-                        HopperItem.create(speedLevel, rangeLevel)
+                        HopperItem.create(data.getType(), speedLevel, rangeLevel)
                 );
             }
         });
