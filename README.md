@@ -24,15 +24,16 @@ Players need a working Vault economy to buy upgrades or unlock filters. Without 
 
 Right-click a placed hopper to open its upgrade menu. The menu shows the current speed and range levels, the cost of the next upgrade, and the filter settings. In the filter menu, players can unlock the filter, buy more slots, and add or remove item types. When a filter is active, that hopper picks up only the selected item types.
 
-By default, speed and range each have four upgrade levels. The filter starts locked, costs $5,000,000 to unlock, and has up to 18 slots. Each additional slot costs $250,000.
+By default, speed and range each have four affordable upgrade levels. The filter costs $1,000 to unlock and each additional slot costs $100.
 
 ## Admin commands
 
 | Command | Description |
 | --- | --- |
-| `/mh` | Show the plugin command hint. |
+| `/mh` | Open the helpful command GUI. |
 | `/mh reload` | Reload the plugin configuration. |
 | `/mh admin` | Open the administrator hopper world-count and removal menu. |
+| `/mh give <player> <type> [amount]` | Give a colored hopper item (`all`, `crop`, `mob`, or `ore`). |
 
 `/mytheriahoppers` is also available as the full command name.
 
@@ -66,12 +67,18 @@ When `hopper-types.enabled` is enabled, administrators can create:
 - **Ore** hoppers for mined resources
 - **Universal** hoppers for the original unrestricted behavior
 
-Typed hoppers start with a one-chunk collection radius. Their range upgrades increase
-the chunk radius, while universal hoppers retain block-radius behavior. Use
+Typed hoppers start by collecting items from their current chunk only. Each range
+upgrade increases their collection radius by exactly one chunk in every direction,
+while universal hoppers retain block-radius behavior. Use
 `/mh give <player> <all|crop|mob|ore> [amount]` to create hopper items.
 
 ## Administration
 
 `/mh admin` opens the administration panel. It includes per-world removal with
-two-step confirmation, undo for the last removal, and a settings panel where
-administrators can toggle typed hoppers or reload the configuration.
+two-step confirmation, undo for the last removal, deletion by hopper type, and
+a settings panel where administrators can toggle typed hoppers or reload the
+configuration. The settings panel also toggles the hopper crafting recipe.
+Disabling typed hoppers converts tracked typed hoppers to the universal
+Mytheria Hopper type automatically. Ordinary vanilla hoppers placed without a
+typed item are registered as Universal hoppers; explicitly typed hopper items
+keep their selected type.

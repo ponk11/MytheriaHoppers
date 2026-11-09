@@ -13,6 +13,7 @@ import org.bukkit.inventory.ItemStack;
 import me.mytheria.hoppers.MytheriaHoppers;
 import me.mytheria.hoppers.gui.HopperGUI;
 import me.mytheria.hoppers.hopper.HopperData;
+import me.mytheria.hoppers.hopper.HopperType;
 
 public class GUIListener implements Listener {
 
@@ -29,7 +30,9 @@ public class GUIListener implements Listener {
         String title = event.getView().getTitle();
 
         if (HopperGUI.ADMIN_TITLE.equals(title) || HopperGUI.CONFIRM_TITLE.equals(title)
-                || HopperGUI.FINAL_CONFIRM_TITLE.equals(title) || HopperGUI.SETTINGS_TITLE.equals(title)) {
+                || HopperGUI.FINAL_CONFIRM_TITLE.equals(title) || HopperGUI.SETTINGS_TITLE.equals(title)
+                || HopperGUI.TYPE_DELETE_TITLE.equals(title) || HopperGUI.TYPE_CONFIRM_TITLE.equals(title)
+                || HopperGUI.HELP_TITLE.equals(title)) {
             if (!(event.getWhoClicked() instanceof Player)) return;
             event.setCancelled(true);
             Player player = (Player) event.getWhoClicked();
@@ -38,7 +41,7 @@ public class GUIListener implements Listener {
             return;
         }
         
-        if (title != null && (title.contains("Hopper Upgrades") || title.contains("Item Filter Selection"))) {
+        if (title != null && (title.contains("Hopper Upgrades") || title.contains("Hopper Filter"))) {
             
             if (event.getWhoClicked() instanceof Player) {
                 Player player = (Player) event.getWhoClicked();
@@ -48,7 +51,7 @@ public class GUIListener implements Listener {
                         handleGuiClick(player, event, title);
                     }
                 } 
-                else if (title.contains("Item Filter Selection")) {
+                else if (title.contains("Hopper Filter")) {
                     Location hopperLocation = HopperGUI.openHopperLocations.get(player.getUniqueId());
                     if (hopperLocation != null) {
                         HopperData data = plugin.getHopperManager().getData(hopperLocation);
@@ -88,6 +91,8 @@ public class GUIListener implements Listener {
                 plugin.getHopperGUI().openAdminGUI(player, 0);
             } else if (slot == 48) {
                 plugin.getHopperGUI().openAdminSettings(player);
+            } else if (slot == 47) {
+                plugin.getHopperGUI().openTypeRemovalGUI(player);
             } else if (slot == 50) {
                 player.closeInventory();
             }
@@ -99,15 +104,72 @@ public class GUIListener implements Listener {
                 boolean enabled = plugin.getConfig().getBoolean("hopper-types.enabled", true);
                 plugin.getConfig().set("hopper-types.enabled", !enabled);
                 plugin.saveConfig();
+                int converted = enabled ? plugin.disableTypedHoppers() : 0;
                 player.sendMessage("§dTyped hoppers §7are now " + (!enabled ? "§aenabled" : "§cdisabled") + "§7.");
+                if (converted > 0) player.sendMessage("§7Converted §f" + converted + " §7typed hopper(s) to universal Mytheria Hoppers.");
                 plugin.getHopperGUI().openAdminSettings(player);
             } else if (slot == 15) {
                 player.closeInventory();
             } else if (slot == 14) {
                 plugin.reloadConfig();
                 plugin.refreshHopperTaskConfiguration();
+                if (!plugin.getConfig().getBoolean("hopper-types.enabled", true)) {
+                    plugin.disableTypedHoppers();
+                }
                 player.sendMessage("§aMytheria Hoppers configuration reloaded.");
                 plugin.getHopperGUI().openAdminSettings(player);
+            } else if (slot == 13) {
+                boolean enabled = plugin.getConfig().getBoolean("crafting-recipes.enabled", true);
+                plugin.getConfig().set("crafting-recipes.enabled", !enabled);
+                plugin.saveConfig();
+                plugin.updateHopperRecipe();
+                player.sendMessage("§6Hopper crafting recipe §7is now "
+                        + (!enabled ? "§aenabled" : "§cdisabled") + "§7.");
+                plugin.getHopperGUI().openAdminSettings(player);
+            }
+            return;
+        }
+
+        if (HopperGUI.TYPE_DELETE_TITLE.equals(title)) {
+            if (slot >= 10 && slot <= 13) {
+                HopperType type = HopperType.values()[slot - 10];
+                plugin.getHopperGUI().openTypeRemovalConfirmation(player, type);
+            } else if (slot == 15) {
+                plugin.getHopperGUI().openAdminGUI(player, 0);
+            }
+            return;
+        }
+
+        if (HopperGUI.TYPE_CONFIRM_TITLE.equals(title)) {
+            if (slot == 11) {
+                HopperType type = plugin.getHopperGUI().getPendingRemovalType(player);
+                if (type != null) {
+                    int removed = plugin.getHopperManager().removeType(type);
+                    plugin.getHopperManager().saveData();
+                    plugin.getHopperGUI().clearPendingRemovalType(player);
+                    player.sendMessage("§cRemoved " + removed + " " + type.getDisplayName() + " hopper(s).");
+                }
+                plugin.getHopperGUI().openAdminGUI(player, 0);
+            } else if (slot == 15) {
+                plugin.getHopperGUI().clearPendingRemovalType(player);
+                plugin.getHopperGUI().openAdminGUI(player, 0);
+            }
+            return;
+        }
+
+        if (HopperGUI.HELP_TITLE.equals(title)) {
+            if (slot == 10) {
+                plugin.getHopperGUI().openHelpGUI(player);
+            } else if (slot == 12) {
+                if (player.hasPermission("mytheriahoppers.admin")) {
+                    plugin.getHopperGUI().openAdminGUI(player, 0);
+                } else {
+                    player.sendMessage("§cYou do not have permission.");
+                }
+            } else if (slot == 14) {
+                player.performCommand("mh give");
+            } else if (slot == 16) {
+                player.performCommand("mh reload");
             }
             return;
         }
@@ -167,7 +229,7 @@ public class GUIListener implements Listener {
                 plugin.getHopperGUI().openFilterGUI(player, hopperLocation);
             }
         }
-        else if (title.contains("Item Filter Selection")) {
+        else if (title.contains("Hopper Filter")) {
             if (slot == 13 && !data.isFilterUnlocked()) {
                 if (!data.isFilterUnlocked()) {
                     if (plugin.getUpgradeManager().unlockFilter(player, data)) {
@@ -188,6 +250,12 @@ public class GUIListener implements Listener {
             else if (data.isFilterUnlocked() && slot >= 0 && slot < Math.min(18, data.getUnlockedFilterSlots())) {
                 ItemStack cursor = event.getCursor();
                 if (cursor != null && cursor.getType() != Material.AIR) {
+                    if (plugin.getConfig().getBoolean("hopper-types.enabled", true)
+                            && !data.getType().accepts(cursor.getType())) {
+                        player.sendMessage("§cThat item is not accepted by a "
+                                + data.getType().getDisplayName() + " hopper.");
+                        return;
+                    }
                     if (!data.getFilteredMaterials().contains(cursor.getType()) &&
                             data.getFilteredMaterials().size() >= data.getUnlockedFilterSlots()) {
                         player.sendMessage("§cUnlock another filter slot before adding more items.");
@@ -221,7 +289,7 @@ public class GUIListener implements Listener {
     public void onInventoryDrag(InventoryDragEvent event) {
         String title = event.getView().getTitle();
         
-        if (title != null && title.contains("Item Filter Selection") &&
+        if (title != null && title.contains("Hopper Filter") &&
                 event.getRawSlots().stream().anyMatch(slot -> slot < event.getView().getTopInventory().getSize())) {
             event.setCancelled(true);
         }

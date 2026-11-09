@@ -10,6 +10,10 @@ hopper-types:
   # Crop, mob, and ore hoppers use chunk radius range upgrades when enabled.
   enabled: true
 
+crafting-recipes:
+  # Controls the vanilla hopper crafting recipe.
+  enabled: true
+
 conversion:
   # Enable only while importing hoppers from existing world chunks. Disable after the first migration.
   enabled: false
@@ -27,22 +31,22 @@ speed-upgrades:
   1:
     transfer-ticks: 8
     transfer-amount: 1
-    cost: 250
+    cost: 75
 
   2:
     transfer-ticks: 6
     transfer-amount: 1
-    cost: 1000
+    cost: 250
 
   3:
     transfer-ticks: 4
     transfer-amount: 1
-    cost: 5000
+    cost: 750
 
   4:
     transfer-ticks: 2
     transfer-amount: 1
-    cost: 25000
+    cost: 2500
 
 range-upgrades:
 
@@ -52,23 +56,23 @@ range-upgrades:
 
   1:
     range: 1
-    cost: 500
+    cost: 150
 
   2:
     range: 2
-    cost: 2500
+    cost: 750
 
   3:
     range: 3
-    cost: 10000
+    cost: 2500
 
   4:
     range: 4
-    cost: 50000
+    cost: 6000
 
 filter:
-  unlock-cost: 10000
-  slot-cost: 1000
+  unlock-cost: 750
+  slot-cost: 75
   max-slots: 18
 
 messages:

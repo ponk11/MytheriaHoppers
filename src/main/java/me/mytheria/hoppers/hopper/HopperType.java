@@ -4,17 +4,19 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
 public enum HopperType {
-    ALL("Universal", Material.HOPPER),
-    CROP("Crop", Material.WHEAT),
-    MOB("Mob", Material.ROTTEN_FLESH),
-    ORE("Ore", Material.DIAMOND);
+    ALL("Universal", Material.HOPPER, ChatColor.DARK_PURPLE),
+    CROP("Crop", Material.WHEAT, ChatColor.DARK_GREEN),
+    MOB("Mob", Material.ROTTEN_FLESH, ChatColor.DARK_RED),
+    ORE("Ore", Material.DIAMOND, ChatColor.BLUE);
 
     private final String displayName;
     private final Material icon;
+    private final ChatColor color;
 
-    HopperType(String displayName, Material icon) {
+    HopperType(String displayName, Material icon, ChatColor color) {
         this.displayName = displayName;
         this.icon = icon;
+        this.color = color;
     }
 
     public String getDisplayName() {
@@ -23,6 +25,65 @@ public enum HopperType {
 
     public Material getIcon() {
         return icon;
+    }
+
+    public ChatColor getColor() {
+        return color;
+    }
+
+    public Material getGuiPane() {
+        switch (this) {
+            case CROP:
+                return Material.GREEN_STAINED_GLASS_PANE;
+            case MOB:
+                return Material.RED_STAINED_GLASS_PANE;
+            case ORE:
+                return Material.BLUE_STAINED_GLASS_PANE;
+            default:
+                return Material.PURPLE_STAINED_GLASS_PANE;
+        }
+    }
+
+    public Material getGuiAccent() {
+        switch (this) {
+            case CROP:
+                return Material.GREEN_WOOL;
+            case MOB:
+                return Material.RED_WOOL;
+            case ORE:
+                return Material.CYAN_WOOL;
+            default:
+                return Material.PURPLE_WOOL;
+        }
+    }
+
+    public String[] getDescription() {
+        switch (this) {
+            case CROP:
+                return new String[]{
+                        "Collects crops and farm drops.",
+                        "Starts in its current chunk only.",
+                        "Each range upgrade adds 1 chunk radius."
+                };
+            case MOB:
+                return new String[]{
+                        "Collects mob drops and loot.",
+                        "Starts in its current chunk only.",
+                        "Each range upgrade adds 1 chunk radius."
+                };
+            case ORE:
+                return new String[]{
+                        "Collects ores and mining drops.",
+                        "Starts in its current chunk only.",
+                        "Each range upgrade adds 1 chunk radius."
+                };
+            default:
+                return new String[]{
+                        "Collects every item type.",
+                        "Picks up items around the hopper.",
+                        "Range upgrades increase block coverage."
+                };
+        }
     }
 
     public boolean accepts(Material material) {
@@ -71,7 +132,7 @@ public enum HopperType {
     }
 
     public String coloredName() {
-        return ChatColor.LIGHT_PURPLE + displayName + " Hopper";
+        return color + displayName + " Hopper";
     }
 
     public static HopperType fromName(String value) {

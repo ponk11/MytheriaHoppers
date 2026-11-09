@@ -35,42 +35,26 @@ public final class HopperItem {
         }
 
         meta.setDisplayName(
-                color("&d&lMytheria " + type.getDisplayName() + " Hopper")
+                type.getColor() + "Mytheria " + type.getDisplayName() + " Hopper"
         );
 
         List<String> lore =
                 new ArrayList<>();
 
+        lore.add(color("&8&m--------------------"));
+        lore.add(color("&fType: " + type.getColor() + type.getDisplayName()));
+        lore.add(color("&fCollection:"));
+        for (String line : type.getDescription()) {
+            lore.add(color("&7  " + line));
+        }
         lore.add(color("&7"));
-        lore.add(
-                color(
-                        "&7Type: &d"
-                                + type.getDisplayName()
-                )
-        );
-        lore.add(
-                color(
-                        "&7Speed Level: &d"
-                                + speedLevel
-                )
-        );
-        lore.add(
-                color(
-                        "&7Range Level: &d"
-                                + rangeLevel
-                )
-        );
+        lore.add(color("&fCurrent upgrades:"));
+        lore.add(color("&7  Transfer speed: &dLevel " + speedLevel));
+        lore.add(color("&7  Collection range: &dLevel " + rangeLevel));
         lore.add(color("&7"));
-        lore.add(
-                color(
-                        "&8Place this hopper to keep"
-                )
-        );
-        lore.add(
-                color(
-                        "&8its upgrades."
-                )
-        );
+        lore.add(color("&ePlace this hopper to preserve"));
+        lore.add(color("&eits upgrades and settings."));
+        lore.add(color("&8&m--------------------"));
 
         meta.setLore(lore);
 

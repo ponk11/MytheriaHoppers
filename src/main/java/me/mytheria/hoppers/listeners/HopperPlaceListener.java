@@ -70,6 +70,10 @@ public class HopperPlaceListener implements Listener {
                                         PersistentDataType.INTEGER
                                 );
             }
+
+            if (!plugin.getConfig().getBoolean("hopper-types.enabled", true)) {
+                type = HopperType.ALL;
+            }
         }
 
         HopperData data =

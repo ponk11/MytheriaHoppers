@@ -120,13 +120,44 @@ public class HopperManager {
         return snapshot.hoppers.size();
     }
 
+    public int removeType(HopperType type) {
+        RemovalSnapshot snapshot = new RemovalSnapshot();
+        java.util.Iterator<Map.Entry<Location, HopperData>> iterator = hopperDataMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Location, HopperData> entry = iterator.next();
+            if (entry.getValue().getType() != type) continue;
+
+            Location location = entry.getKey();
+            Block block = location.getBlock();
+            BlockData blockData = block.getBlockData().clone();
+            ItemStack[] contents = null;
+            BlockState state = block.getState();
+            if (state instanceof Hopper) {
+                ItemStack[] original = ((Hopper) state).getInventory().getContents();
+                contents = new ItemStack[original.length];
+                for (int i = 0; i < original.length; i++) {
+                    contents[i] = original[i] == null ? null : original[i].clone();
+                }
+            }
+            snapshot.hoppers.add(new RemovedHopper(location, copyData(entry.getValue()), blockData, contents));
+            iterator.remove();
+            if (plugin.getHopperTask() != null) plugin.getHopperTask().unindexHopper(location);
+            if (block.getType() == Material.HOPPER) block.setType(Material.AIR, false);
+        }
+        if (!snapshot.hoppers.isEmpty()) lastRemoval = snapshot;
+        return snapshot.hoppers.size();
+    }
+
     public int undoLastRemoval() {
         if (!canUndoLastRemoval()) return 0;
         int restored = 0;
         for (RemovedHopper removed : lastRemoval.hoppers) {
             Block block = removed.location.getBlock();
             if (block.getType() != Material.AIR && block.getType() != Material.HOPPER) continue;
-            if (block.getType() == Material.AIR) block.setBlockData(removed.blockData, false);
+            if (block.getType() == Material.AIR) {
+                block.setType(Material.HOPPER, false);
+                block.setBlockData(removed.blockData, false);
+            }
             BlockState state = block.getState();
             if (state instanceof Hopper && removed.contents != null) {
                 ((Hopper) state).getInventory().setContents(removed.contents);
