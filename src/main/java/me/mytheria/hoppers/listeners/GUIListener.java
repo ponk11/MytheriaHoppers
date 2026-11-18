@@ -226,10 +226,19 @@ public class GUIListener implements Listener {
                 }
                 plugin.getHopperGUI().openGUI(player, hopperLocation);
             } else if (slot == 15) {
-                plugin.getHopperGUI().openFilterGUI(player, hopperLocation);
+                if (player.hasPermission("mytheriahoppers.filter")) {
+                    plugin.getHopperGUI().openFilterGUI(player, hopperLocation);
+                } else {
+                    player.sendMessage("§cYou do not have permission to use hopper filters.");
+                }
             }
         }
         else if (title.contains("Hopper Filter")) {
+            if (!player.hasPermission("mytheriahoppers.filter")) {
+                player.sendMessage("§cYou do not have permission to use hopper filters.");
+                player.closeInventory();
+                return;
+            }
             if (slot == 13 && !data.isFilterUnlocked()) {
                 if (!data.isFilterUnlocked()) {
                     if (plugin.getUpgradeManager().unlockFilter(player, data)) {

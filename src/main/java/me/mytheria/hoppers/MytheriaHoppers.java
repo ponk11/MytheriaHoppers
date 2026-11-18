@@ -23,9 +23,7 @@ import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
-import java.util.Iterator;
 import me.mytheria.hoppers.hopper.HopperData;
 import me.mytheria.hoppers.hopper.HopperType;
 
@@ -96,10 +94,13 @@ public class MytheriaHoppers extends JavaPlugin {
             return false;
         }
         economy = rsp.getProvider();
+        if (economy == null) {
+            return false;
+        }
         
         this.economyManager = new EconomyManager(new VaultEconomyProvider(economy));
 
-        return economy != null;
+        return true;
     }
 
     public static MytheriaHoppers getInstance() {
@@ -163,13 +164,8 @@ public class MytheriaHoppers extends JavaPlugin {
     }
 
     public void updateHopperRecipe() {
-        Iterator<Recipe> recipes = getServer().recipeIterator();
-        while (recipes.hasNext()) {
-            Recipe recipe = recipes.next();
-            if (recipe.getResult().getType() == Material.HOPPER) {
-                recipes.remove();
-            }
-        }
+        getServer().removeRecipe(NamespacedKey.minecraft("hopper"));
+        getServer().removeRecipe(new NamespacedKey(this, "hopper_recipe"));
         if (!getConfig().getBoolean("crafting-recipes.enabled", true)) return;
 
         ShapedRecipe recipe = new ShapedRecipe(

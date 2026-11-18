@@ -1,84 +1,130 @@
 # Mytheria Hoppers
 
-Mytheria Hoppers lets players upgrade placed hoppers through an in-game menu. Upgrades can increase transfer speed and item pickup range. Players can also unlock a filter and choose which item types a hopper will pick up.
+Upgrade your hoppers instead of replacing them.
+
+Mytheria Hoppers adds per-hopper speed upgrades, collection range upgrades,
+item filters, and optional crop/mob/ore hopper types. Upgrades are bought from
+an in-game menu with your server's Vault economy.
 
 ## Features
 
-- Upgrade hopper transfer speed, up to level 4 by default.
-- Increase the range at which a hopper picks up dropped items, up to level 4 by default.
-- Unlock an item filter for each hopper, then add allowed item types to its slots.
-- Set upgrade prices, filter prices, slot limits, and hopper transfer settings in `plugins/MytheriaHoppers/config.yml`.
-- Save hopper upgrades and filter settings when the server shuts down.
-- Convert existing hoppers gradually after installation to limit the work done during startup.
-- Support worlds loaded by Multiverse-Core, Iris, and other world-management plugins.
+- Upgrade hopper **speed** and **collection range** independently.
+- Set how often a hopper runs and how many items it moves per cycle.
+- Unlock an **item filter** and choose exactly which materials a hopper accepts.
+- Use typed hoppers for:
+  - **Crop** items and farm drops
+  - **Mob** drops and loot
+  - **Ore** and common mining drops
+  - **Universal** hoppers that accept everything
+- Give upgraded hopper items to players; breaking a hopper keeps its upgrades.
+- Save hopper upgrades, types, and filters across restarts.
+- Import existing-world hoppers gradually from saved region files.
+- Manage hoppers by world or type from an admin menu, with confirmation and
+  undo for the latest removal.
+- Toggle typed hoppers and the hopper crafting recipe without restarting.
 
-## Install
+## Requirements
 
-1. Install Vault and an economy plugin that provides a Vault economy.
-2. Put `MytheriaHoppers.jar` in the server's `plugins` folder.
-3. Restart the server. The plugin creates its config file on first startup.
+- 1.16.5 or newer Paper server
+- Java 8 or newer
+- Vault and a Vault-compatible economy plugin for paid upgrades
 
-Players need a working Vault economy to buy upgrades or unlock filters. Without one, the plugin logs a warning and purchases are unavailable.
 
-## For players
+## Installation
 
-Right-click a placed hopper to open its upgrade menu. The menu shows the current speed and range levels, the cost of the next upgrade, and the filter settings. In the filter menu, players can unlock the filter, buy more slots, and add or remove item types. When a filter is active, that hopper picks up only the selected item types.
+1. Install Vault and an economy plugin if you want paid upgrades.
+2. Put `MytheriaHoppers.jar` in your server's `plugins` folder.
+3. Start the server once.
+4. Edit `plugins/MytheriaHoppers/config.yml` if needed.
+5. Run `/mh reload`, or restart the server.
 
-By default, speed and range each have four affordable upgrade levels. The filter costs $1,000 to unlock and each additional slot costs $100.
+Without an economy provider, hoppers still collect and transfer items, but
+players cannot buy upgrades or unlock filters.
 
-## Admin commands
+## How to use
 
-| Command | Description |
-| --- | --- |
-| `/mh` | Open the helpful command GUI. |
-| `/mh reload` | Reload the plugin configuration. |
-| `/mh admin` | Open the administrator hopper world-count and removal menu. |
-| `/mh give <player> <type> [amount]` | Give a colored hopper item (`all`, `crop`, `mob`, or `ore`). |
+### Players
 
-`/mytheriahoppers` is also available as the full command name.
+1. Place a normal hopper, or ask an admin for a typed hopper item.
+2. **Right-click** the hopper to open its inventory.
+3. **Sneak + left-click** the hopper to open its upgrade menu.
+4. Buy speed or range upgrades from the menu.
+5. Open **Item Filter Settings**, unlock the filter, and unlock slots as needed.
+6. To add a material, hold it on your cursor and click an empty filter slot.
+   Click a selected material to remove it.
+
+Filters are allow-lists: once a filter is enabled, the hopper only picks up
+the selected materials. Typed hoppers also reject items outside their type.
+
+### Hopper types
+
+Admins can create hopper items with:
+
+```text
+/mh give <player> <all|crop|mob|ore> [amount]
+```
+
+Typed hoppers start by searching their current chunk. Each range level adds one
+chunk of radius. Universal hoppers use block-radius collection instead and
+accept every item type.
+
+## Commands
+
+`/mytheriahoppers` is the full command name; `/mh` is its alias.
+
+| Command | Permission | What it does |
+| --- | --- | --- |
+| `/mh` | None | Opens the help menu. |
+| `/mh reload` | `mytheriahoppers.admin.reload` | Reloads `config.yml`. |
+| `/mh admin` | `mytheriahoppers.admin` | Opens the administration menu. |
+| `/mh give <player> <type> [amount]` | `mytheriahoppers.admin` | Gives a hopper item to an online player. |
+
+The admin menu can:
+
+- remove all tracked hoppers in a world;
+- remove all tracked hoppers of one type;
+- undo the latest removal when the blocks can be restored;
+- enable or disable typed hoppers; and
+- enable or disable the hopper crafting recipe.
 
 ## Permissions
 
 | Permission | Default | Description |
 | --- | --- | --- |
-| `mytheriahoppers.use` | Everyone | Use hopper upgrades. |
-| `mytheriahoppers.filter` | Everyone | Unlock and use item filters. |
-| `mytheriahoppers.admin` | Operators | General admin permission. |
-| `mytheriahoppers.admin.reload` | Operators | Reload the configuration. |
-| `mytheriahoppers.admin.bypass` | Operators | Bypass hopper restrictions. |
+| `mytheriahoppers.use` | Everyone | Open the hopper upgrade menu. |
+| `mytheriahoppers.filter` | Everyone | Open and use hopper filters. |
+| `mytheriahoppers.admin` | Operators | Use admin tools and `/mh give`. |
+| `mytheriahoppers.admin.reload` | Operators | Use `/mh reload`. |
+| `mytheriahoppers.admin.bypass` | Operators | Reserved for server integrations. |
 
 ## Configuration
 
-The main settings are in `plugins/MytheriaHoppers/config.yml`. The default speed upgrades use transfer intervals of 8, 6, 4, and 2 ticks. The default range levels are 2, 4, 6, and 8 blocks. Prices and these values can be changed in the matching `speed-upgrades` and `range-upgrades` sections.
+The default configuration is generated at
+`plugins/MytheriaHoppers/config.yml`.
 
-`conversion.chunks-per-second` controls how quickly saved chunks are checked for existing hoppers after installation. The default is 2 chunks per second. Use `/mh reload` after changing settings.
+| Setting | Default | Purpose |
+| --- | ---: | --- |
+| `settings.max-speed-level` | `4` | Maximum speed upgrade level. |
+| `settings.max-range-level` | `4` | Maximum range upgrade level. |
+| `settings.max-hoppers-per-run` | `25` | Processing limit per scheduler pass. |
+| `filter.max-slots` | `18` | Maximum materials in one filter. |
+| `crafting-recipes.enabled` | `true` | Enable the normal hopper recipe. |
+| `conversion.enabled` | `false` | Scan saved region files for existing hoppers. |
+| `conversion.chunks-per-second` | `2` | Pace of the conversion scan. |
 
-Worlds loaded after Mytheria Hoppers starts are detected automatically. Saved hopper data waits for those worlds to load, and their loaded and saved chunks are scanned for existing hoppers. The admin menu is available with `/mh admin` for players with `mytheriahoppers.admin`.
-# Mytheria Hoppers
+Speed values are under `speed-upgrades.<level>`:
 
-Mytheria Hoppers is a configurable Paper 1.16.5 hopper upgrade plugin.
+- `transfer-ticks` controls the interval between processing cycles.
+- `transfer-amount` controls the number of items attempted per cycle.
+- `cost` controls the Vault economy price.
 
-## Hopper types
+Range prices are under `range-upgrades.<level>`. For typed hoppers, the level
+is also the chunk radius. To import an existing world, enable
+`conversion.enabled`, start the server, wait for the scan to finish, then
+disable it again.
 
-When `hopper-types.enabled` is enabled, administrators can create:
+## Data and backups
 
-- **Crop** hoppers for farm output
-- **Mob** hoppers for mob drops
-- **Ore** hoppers for mined resources
-- **Universal** hoppers for the original unrestricted behavior
-
-Typed hoppers start by collecting items from their current chunk only. Each range
-upgrade increases their collection radius by exactly one chunk in every direction,
-while universal hoppers retain block-radius behavior. Use
-`/mh give <player> <all|crop|mob|ore> [amount]` to create hopper items.
-
-## Administration
-
-`/mh admin` opens the administration panel. It includes per-world removal with
-two-step confirmation, undo for the last removal, deletion by hopper type, and
-a settings panel where administrators can toggle typed hoppers or reload the
-configuration. The settings panel also toggles the hopper crafting recipe.
-Disabling typed hoppers converts tracked typed hoppers to the universal
-Mytheria Hopper type automatically. Ordinary vanilla hoppers placed without a
-typed item are registered as Universal hoppers; explicitly typed hopper items
-keep their selected type.
+Hopper data is stored in `plugins/MytheriaHoppers/data.yml`. The plugin writes
+a temporary file before replacing the main file and keeps recent daily
+backups in `plugins/MytheriaHoppers/backups/`.

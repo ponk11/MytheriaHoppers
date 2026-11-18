@@ -39,6 +39,7 @@ public class HopperTask extends BukkitRunnable implements Listener {
     private final Set<String> loadedChunks = ConcurrentHashMap.newKeySet();
     private final PriorityQueue<ScheduledHopper> scheduledHoppers =
             new PriorityQueue<>(Comparator.comparingInt(entry -> entry.dueTick));
+    private final Map<Location, ScheduledHopper> scheduledByLocation = new ConcurrentHashMap<>();
 
     public HopperTask(MytheriaHoppers plugin) {
         this.plugin = plugin;
@@ -61,6 +62,7 @@ public class HopperTask extends BukkitRunnable implements Listener {
         tickStep = 2;
         maxHoppersPerRun = Math.max(1, plugin.getConfig().getInt("settings.max-hoppers-per-run", 25));
         scheduledHoppers.clear();
+        scheduledByLocation.clear();
         for (Map.Entry<String, Set<Location>> entry : hoppersByChunk.entrySet()) {
             for (Location location : entry.getValue()) schedule(location, currentTick);
         }
@@ -75,6 +77,7 @@ public class HopperTask extends BukkitRunnable implements Listener {
                 && !scheduledHoppers.isEmpty() && scheduledHoppers.peek().dueTick <= currentTick) {
             ScheduledHopper scheduled = scheduledHoppers.poll();
             Location location = scheduled.location;
+            if (!scheduledByLocation.remove(location, scheduled)) continue;
             String chunkKey = chunkKey(location);
             Set<Location> locations = hoppersByChunk.get(chunkKey);
             if (locations == null || !locations.contains(location)) continue;
@@ -136,6 +139,7 @@ public class HopperTask extends BukkitRunnable implements Listener {
         if (locations != null && locations.remove(location) && locations.isEmpty()) {
             hoppersByChunk.remove(chunkKey(location), locations);
         }
+        scheduledByLocation.remove(location);
     }
 
     @EventHandler
@@ -175,7 +179,12 @@ public class HopperTask extends BukkitRunnable implements Listener {
         if (data == null) return;
         int interval = transferTicks[clampLevel(data.getSpeedLevel())];
         int dueTick = Math.max(fromTick + tickStep, data.getLastTransferTick() + interval);
-        scheduledHoppers.add(new ScheduledHopper(location, dueTick));
+        ScheduledHopper existing = scheduledByLocation.get(location);
+        if (existing != null && existing.dueTick <= dueTick) return;
+
+        ScheduledHopper scheduled = new ScheduledHopper(location, dueTick);
+        scheduledByLocation.put(location, scheduled);
+        scheduledHoppers.add(scheduled);
     }
 
     private static final class ScheduledHopper {
